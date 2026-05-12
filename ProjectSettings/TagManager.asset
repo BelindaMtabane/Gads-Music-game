@@ -11,6 +11,7 @@ TagManager:
   - JumpBoost
   - Sneak
   - SlowDown
+  - Speed
   layers:
   - Default
   - TransparentFX

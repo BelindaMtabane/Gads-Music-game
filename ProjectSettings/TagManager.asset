@@ -3,7 +3,14 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - GroundTrigger
+  - Artifact
+  - HealthINC
+  - HealthDEC
+  - JumpBoost
+  - Sneak
+  - SlowDown
   layers:
   - Default
   - TransparentFX

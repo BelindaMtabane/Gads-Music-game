@@ -4,10 +4,10 @@ public class PlayerMovement : MonoBehaviour
 {
     //Declare variables
     private CharacterController controller;
-    public float sidewaySpeed = 5f;
+    public float sidewaySpeed = 10f;
     public float forwardSpeed = 10f;
     public float gravity = -9.81f;
-    public float jumpHeight = 2f;
+    public float jumpHeight = 3f;
 
     //Ground variables
     public Transform groundCheck;
@@ -37,8 +37,7 @@ public class PlayerMovement : MonoBehaviour
         {
             velocity = -2f;
         }
-        Debug.DrawRay(groundCheck.position, Vector3.down * groundDistance, Color.red);
-        Debug.Log(controller.isGrounded);
+        //Debug.Log(controller.isGrounded);
         //Initialize horixontal movement
         float horizontal = Input.GetAxis("Horizontal");
 

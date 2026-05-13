@@ -11,14 +11,12 @@ public class PickupBase : MonoBehaviour
     public int currentHealth;
     public int maxHealth = 100;
     public int artifactAmount;
+    public bool isSneaking = false;
 
     //Time variable for boost
     private float timer;
     private bool jumpBoostActive = false;
     private bool speedBoostActive = false;
-
-
-
     //This class is for pickups
     private void Start()
     {
@@ -60,6 +58,18 @@ public class PickupBase : MonoBehaviour
                 Debug.Log("Speed boost has worn off!");
             }
         }
+        if(isSneaking == true)
+        {
+            timer += Time.deltaTime;
+            //Reset after 5 seconds
+            if (timer >= 7f)
+            {
+                isSneaking = false;
+                //Reset timer
+                timer = 0f;
+                Debug.Log("Sneaking has worn off!");
+            }
+        }
 
     }
     private void OnTriggerEnter(Collider other)
@@ -91,6 +101,7 @@ public class PickupBase : MonoBehaviour
         if(other.CompareTag("Sneak"))
         {
             Debug.Log("Player hit a sneak pickup and is now invisible to obstacles for 5 seconds!");
+            Sneak();
             Destroy(other.gameObject);
         }
         if (other.CompareTag("Speed"))
@@ -104,7 +115,16 @@ public class PickupBase : MonoBehaviour
     void HealthIncrease()
     {
         //Change the players speed to be slower
-        currentHealth += healthIncreaseAmount;
+        if (currentHealth >= maxHealth)
+        {
+            //Set the players health to max
+            currentHealth = maxHealth;
+        }
+        else
+        {
+            //Increase the players health
+            currentHealth += healthIncreaseAmount;
+        }
     }
     void HealthDecrease()
     {
@@ -135,6 +155,15 @@ public class PickupBase : MonoBehaviour
         //Activate timer
         speedBoostActive = true;
         Debug.Log("Pickup speed timer started: " + timer);
+        //Reset timer
+        timer = 0f;
+    }
+    void Sneak()
+    {
+        //Activate sneak
+        isSneaking = true;
+        //Activate timer
+        Debug.Log("Pickup sneak timer started: " + timer);
         //Reset timer
         timer = 0f;
     }

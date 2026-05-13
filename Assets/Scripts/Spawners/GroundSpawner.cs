@@ -4,17 +4,17 @@ public class GroundSpawner : MonoBehaviour
 {
     public GameObject groundPrefabTrigger;
     private bool hasSpawned = false;
-    //public SpawnObjects spawnObjects;
+    public Spawner spawnObjects;
 
     void Start()
     {
         // Assign the Spawn objects script to the variable
 
-        /*spawnObjects = Object.FindFirstObjectByType<SpawnObjects>(); // Updated to use the recommended method
+        spawnObjects = Object.FindFirstObjectByType<Spawner>(); // Updated to use the recommended method
         if (spawnObjects == null)
         {
             Debug.LogError("SpawnObjects script NOT found in scene!");
-        }*/
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -36,8 +36,8 @@ public class GroundSpawner : MonoBehaviour
         GameObject newGround = Instantiate(groundPrefabTrigger, spawnPosition, Quaternion.identity);
 
         // Spawn the objects on the new grounds
-        /*if (spawnObjects != null)
-            spawnObjects.SpawnGameObjects(newGround);*/
+        if (spawnObjects != null)
+            spawnObjects.SpawnGameObjects(newGround);
 
         if (groundPrefabTrigger == null)
         {
@@ -46,6 +46,6 @@ public class GroundSpawner : MonoBehaviour
         }
 
         // Destroy the ground after 10 seconds each
-        Destroy(newGround, 25f);
+        Destroy(newGround, 50f);
     }
 }

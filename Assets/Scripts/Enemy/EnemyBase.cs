@@ -3,91 +3,86 @@ using UnityEngine;
 public class EnemyBase : MonoBehaviour
 {
     //Declare variables
-    /*
     public Transform player;
-    private float speed = 2f;
-    private float maxSpeed = 10f;
-    private float speedIncreaseRate = 0.1f;
-    public float chaseDistance = 20f;*/
-    //Player reference
-    public Transform player;
-
-    //Starting speed
-    public float moveSpeed = 10f;
-
-    //Boosted speed
-    public float boostedSpeed = 30f;
-
-    //Time before speed boost
-    public float speedBoostTime = 10f;
-
-
-    //How long boost lasts
+    private float speed = 10f;
+    private float boostedSpeed = 30f;
+    private float speedBoostTime = 10f;
     public float boostDuration = 10f;
-
-    //Timer
-    private float timer;
-
-    //Check if boosted
-    private bool hasBoosted = false;
-    //Pickup base reference
+    public float timer;
     private PickupBase pickupBase;
+    private PlayerMovement playerMovement;
     public float followDistance = 1f;
+    private bool hasBoosted = false;
 
     void Start()
     {
-        //Find the player automatically
+        //Assign scripts to be used in the enemy base script
         player = GameObject.FindGameObjectWithTag("Player").transform;
-        //Find the pickup base script
-        pickupBase = GameObject.FindGameObjectWithTag("Player").GetComponent<PickupBase>();
+        playerMovement = player.GetComponent<PlayerMovement>();
+        pickupBase = player.GetComponent<PickupBase>();
 
+
+        //Check if the scripts are attached 
+        if (pickupBase == null)
+        {
+            Debug.LogError("PickupBase script not found on Player!");
+        }
+
+        if (playerMovement == null)
+        {
+            Debug.LogError("PlayerMovement script not found on Player!");
+        }
+
+        if (player == null)
+        {
+            Debug.LogError("Player not found!");
+        }
     }
 
     void Update()
     {
-        //Increase timer
+        //Increment the timer
         timer += Time.deltaTime;
-        //Boost ONLY ONCE
-        if (timer >= speedBoostTime && !hasBoosted)
+
+        if(pickupBase != null && playerMovement != null)
         {
-            moveSpeed = boostedSpeed;
+            //Check if the timer reached the boost time and if the boost has not been applied yet
+            if (pickupBase.isSneaking || playerMovement.forwardSpeed == 20f || pickupBase.artifactAmount == 10f)
+            {
+                if (timer >= speedBoostTime && !hasBoosted)
+                {
+                    speed = boostedSpeed;
 
-            Debug.Log("Enemy speed boosted to: " + moveSpeed);
+                    Debug.Log("Security speed boosted to: " + speed);
 
-            hasBoosted = true;
+                    hasBoosted = true;
+                }
+            }
         }
-        //Return to normal speed
+        //Return back to normal speed
         if (timer >= boostDuration && hasBoosted)
         {
-            moveSpeed = 10f;
+            speed = 10f;
 
             hasBoosted = false;
 
             timer = 0f;
 
-            Debug.Log("Enemy Back To Normal Speed!");
+            Debug.Log("Security is in Normal Speed!");
         }
-        Vector3 targetPosition = new Vector3(
-    player.position.x,
-    transform.position.y,
-    player.position.z - followDistance
-);
+        //Calculate the target position to follow the player 
+        Vector3 targetPosition = new Vector3(player.position.x, transform.position.y, player.position.z - followDistance);
 
         //Move toward player
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            targetPosition,
-            moveSpeed * Time.deltaTime
-        );
+        transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Handle player collision (e.g., reduce health, trigger game over, etc.)
             Debug.Log("Enemy collided with player!");
-            //Reload scene again
+            pickupBase.HealthDecrease();
         }
     }
 }

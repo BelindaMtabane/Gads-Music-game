@@ -1,8 +1,9 @@
 using UnityEngine;
-
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 public class PickupBase : MonoBehaviour
 {
-    //Declare variables for the obstacle
+    //Declare variables for the pickups
     PlayerMovement playerMovement;
 
     //Pickup variables
@@ -22,7 +23,6 @@ public class PickupBase : MonoBehaviour
     {
         //Find the player movement script
         playerMovement = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMovement>();
-
         //Assign currnt health to max health
         currentHealth = maxHealth;
     }
@@ -114,7 +114,7 @@ public class PickupBase : MonoBehaviour
 
     void HealthIncrease()
     {
-        //Change the players speed to be slower
+        //Check if the player health is already at max
         if (currentHealth >= maxHealth)
         {
             //Set the players health to max
@@ -126,15 +126,38 @@ public class PickupBase : MonoBehaviour
             currentHealth += healthIncreaseAmount;
         }
     }
-    void HealthDecrease()
+    public void HealthDecrease()
     {
-        //Decrease player health
-        currentHealth -= healthDecreaseAmount;
+        //Check if the player's health is already at 0
+        if (currentHealth <= 0f)
+        {
+            Debug.Log("Player has died!");
+            //Load the death scene
+            Death();
+            //Restart the level
+            SceneManager.LoadScene("MainGameL1");
+        }
+        else
+        {
+            //Decrease the players health
+            currentHealth -= healthDecreaseAmount;
+        }
     }
     void Artifact()
     {
         //Increase artifact amount
         artifactAmount += 1;
+        if (artifactAmount >= 10 && currentHealth >= 1)
+        {
+            Debug.Log("Player has collected all artifacts and wins!");
+            //Load victory scene
+            Victory();
+        }
+        else
+        {
+            //Increase artifact amount
+            artifactAmount += 1;
+        }
     }
     void JumpBoost()
     {
@@ -166,5 +189,15 @@ public class PickupBase : MonoBehaviour
         Debug.Log("Pickup sneak timer started: " + timer);
         //Reset timer
         timer = 0f;
+    }
+    void Victory()
+    {
+        Debug.Log("Victory, player won!");
+        //UnityEngine.SceneManagement.SceneManager.LoadScene("VictoryScene");
+    }
+    void Death()
+    {
+        Debug.Log("Defeat, player lost!");
+        //UnityEngine.SceneManagement.SceneManager.LoadScene("DeathScene");
     }
 }

@@ -12,6 +12,7 @@ TagManager:
   - Sneak
   - SlowDown
   - Speed
+  - Victory&Death
   layers:
   - Default
   - TransparentFX

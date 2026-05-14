@@ -13,6 +13,7 @@ public class PickupBase : MonoBehaviour
     public int maxHealth = 100;
     public int artifactAmount;
     public bool isSneaking = false;
+    public int hitCounter = 3;
 
     //Time variable for boost
     private float timer;
@@ -28,6 +29,7 @@ public class PickupBase : MonoBehaviour
     }
     private void Update()
     {
+        
         //Caalculate the time
         if (jumpBoostActive)
         {
@@ -145,8 +147,6 @@ public class PickupBase : MonoBehaviour
     }
     void Artifact()
     {
-        //Increase artifact amount
-        artifactAmount += 1;
         if (artifactAmount >= 10 && currentHealth >= 1)
         {
             Debug.Log("Player has collected all artifacts and wins!");
@@ -190,12 +190,12 @@ public class PickupBase : MonoBehaviour
         //Reset timer
         timer = 0f;
     }
-    void Victory()
+    public void Victory()
     {
         Debug.Log("Victory, player won!");
         //UnityEngine.SceneManagement.SceneManager.LoadScene("VictoryScene");
     }
-    void Death()
+    public void Death()
     {
         Debug.Log("Defeat, player lost!");
         //UnityEngine.SceneManagement.SceneManager.LoadScene("DeathScene");

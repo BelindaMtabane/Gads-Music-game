@@ -4,8 +4,8 @@ public class EnemyBase : MonoBehaviour
 {
     //Declare variables
     public Transform player;
-    private float speed = 10f;
-    private float boostedSpeed = 30f;
+    private float speed = 15f;
+    private float boostedSpeed = 40f;
     private float speedBoostTime = 10f;
     public float boostDuration = 10f;
     public float timer;
@@ -20,8 +20,7 @@ public class EnemyBase : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player").transform;
         playerMovement = player.GetComponent<PlayerMovement>();
         pickupBase = player.GetComponent<PickupBase>();
-
-
+        pickupBase.currentHealth = 100;
         //Check if the scripts are attached 
         if (pickupBase == null)
         {
@@ -44,7 +43,7 @@ public class EnemyBase : MonoBehaviour
         //Increment the timer
         timer += Time.deltaTime;
 
-        if(pickupBase != null && playerMovement != null)
+        if (pickupBase != null && playerMovement != null)
         {
             //Check if the timer reached the boost time and if the boost has not been applied yet
             if (pickupBase.isSneaking || playerMovement.forwardSpeed == 20f || pickupBase.artifactAmount == 10f)
@@ -81,8 +80,25 @@ public class EnemyBase : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            Debug.Log("Enemy collided with player!");
-            pickupBase.HealthDecrease();
+            if (pickupBase.hitCounter <= 0)
+            {
+                Debug.Log("Player has been hit 3 times and is now dead!");
+                //Reset the counter
+                pickupBase.hitCounter = 0;
+                pickupBase.Death();
+            }
+            else
+            {
+                Debug.Log("Security hit the player! Hit count: " + (pickupBase.hitCounter + 1));
+                //Decrease counter
+                pickupBase.hitCounter -= 1;
+                
+                //Decrease the player's health by 20
+                pickupBase.currentHealth -= 20;
+                //Go to normal speed after hitting the player
+                timer = 10f;
+                hasBoosted = true;
+            }
         }
     }
 }

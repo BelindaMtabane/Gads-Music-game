@@ -1,34 +1,62 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 /// <summary>
 /// Manages the pre-game countdown (5-4-3-2-1-GO!) then enables gameplay.
-/// Also handles the Game Over sequence when the player is caught.
+/// Also handles the Game Over and Victory sequences, scene transitions,
+/// and in-game narration hints.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public static bool GameStarted { get; private set; } = false;
 
+    // ── Scene names ───────────────────────────────────────────────────────────
+    [Header("Scene Names")]
+    public string deathSceneName   = "DeathScene";
+    public string victorySceneName = "VictoryScene";
+
+    // ── Countdown ─────────────────────────────────────────────────────────────
     [Header("Countdown")]
-    [Tooltip("TextMeshProUGUI element to show the countdown numbers")]
     public TextMeshProUGUI countdownText;
-    [Tooltip("How many seconds to count down from")]
     public int countdownSeconds = 5;
 
+    // ── Game Over ─────────────────────────────────────────────────────────────
     [Header("Game Over")]
-    [Tooltip("TextMeshProUGUI element to show GAME OVER")]
     public TextMeshProUGUI gameOverText;
+    [Tooltip("Seconds after GAME OVER text appears before loading DeathScene")]
+    public float gameOverSceneDelay = 2.5f;
 
+    // ── Scene References ──────────────────────────────────────────────────────
     [Header("Scene References")]
-    public PlayerMovement   playerMovement;
-    public EnemyBase        enemyBase;
-    public Animator         playerAnimator;
-    public Animator         enemyAnimator;
+    public PlayerMovement playerMovement;
+    public EnemyBase      enemyBase;
+    public Animator       playerAnimator;
+    public Animator       enemyAnimator;
 
-    private bool gameOverTriggered = false;
+    // ── In-game narration ─────────────────────────────────────────────────────
+    [Header("In-Game Narration")]
+    [Tooltip("Lines shown as a popup right after GO! at the start of the run.")]
+    public NarrationLine[] startNarration = new NarrationLine[]
+    {
+        new NarrationLine("Run! Collect the instruments before the guard catches you!", "Narrator"),
+        new NarrationLine("Jump over obstacles and grab power-ups along the way.", "Narrator")
+    };
 
+    [Tooltip("Lines shown when the player grabs a power-up (optional mid-game hint).")]
+    public NarrationLine[] midGameNarration = new NarrationLine[]
+    {
+        new NarrationLine("Great pick-up! Keep moving — the guard is right behind you!", "Narrator")
+    };
+
+    // ── Internal ──────────────────────────────────────────────────────────────
+    private bool _gameOverTriggered = false;
+    private bool _victoryTriggered  = false;
+    private bool _midGameShown      = false;
+
+    // ─────────────────────────────────────────────────────────────────────────
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -38,38 +66,31 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Auto-find references if not assigned
-        if (playerMovement == null)
-            playerMovement = FindAnyObjectByType<PlayerMovement>();
-        if (enemyBase == null)
-            enemyBase = FindAnyObjectByType<EnemyBase>();
+        // Auto-find references if not assigned in Inspector
+        if (playerMovement == null) playerMovement = FindAnyObjectByType<PlayerMovement>();
+        if (enemyBase      == null) enemyBase      = FindAnyObjectByType<EnemyBase>();
 
-        GameObject player = playerMovement != null ? playerMovement.gameObject : null;
-        if (playerAnimator == null && player != null)
-            playerAnimator = player.GetComponentInChildren<Animator>();
+        var playerGO = playerMovement != null ? playerMovement.gameObject : null;
+        if (playerAnimator == null && playerGO != null)
+            playerAnimator = playerGO.GetComponentInChildren<Animator>();
 
-        GameObject enemy = enemyBase != null ? enemyBase.gameObject : null;
-        if (enemyAnimator == null && enemy != null)
-            enemyAnimator = enemy.GetComponentInChildren<Animator>();
+        var enemyGO = enemyBase != null ? enemyBase.gameObject : null;
+        if (enemyAnimator == null && enemyGO != null)
+            enemyAnimator = enemyGO.GetComponentInChildren<Animator>();
 
-        // Hide game over text at start
-        if (gameOverText != null)
-            gameOverText.gameObject.SetActive(false);
+        if (gameOverText != null) gameOverText.gameObject.SetActive(false);
 
         StartCoroutine(StartCountdown());
     }
 
+    // ── Countdown ─────────────────────────────────────────────────────────────
     private IEnumerator StartCountdown()
     {
-        // Freeze player and enemy movement
         if (playerMovement != null) playerMovement.enabled = false;
         if (enemyBase      != null) enemyBase.enabled      = false;
-
-        // Force idle animations
         if (playerAnimator != null) playerAnimator.SetFloat("Speed", 0f);
         if (enemyAnimator  != null) enemyAnimator.SetFloat("Speed", 0f);
 
-        // Show countdown
         for (int i = countdownSeconds; i > 0; i--)
         {
             if (countdownText != null)
@@ -80,7 +101,6 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
 
-        // "GO!"
         if (countdownText != null)
         {
             countdownText.text = "GO!";
@@ -88,52 +108,102 @@ public class GameManager : MonoBehaviour
             countdownText.gameObject.SetActive(false);
         }
 
-        // Start game
+        // Start gameplay
         GameStarted = true;
         if (playerMovement != null) playerMovement.enabled = true;
         if (enemyBase      != null) enemyBase.enabled      = true;
+
+        // Show start narration popup (auto-advance, non-blocking)
+        PlayStartNarration();
+    }
+
+    // ── In-game narration ─────────────────────────────────────────────────────
+    private void PlayStartNarration()
+    {
+        if (NarrationManager.Instance == null) return;
+        if (startNarration == null || startNarration.Length == 0) return;
+
+        NarrationManager.Instance.autoAdvance = true;
+        NarrationManager.Instance.autoDelay   = 2.5f;
+        NarrationManager.Instance.Play(startNarration);
     }
 
     /// <summary>
-    /// Called the moment the player dies (from PlayerAnimationController or EnemyBase).
-    /// Plays the Defeated animation, stops the enemy, then shows GAME OVER.
+    /// Call this from PickupBase or power-up scripts to trigger a mid-game hint
+    /// (fires only once per run).
+    /// </summary>
+    public void TriggerMidGameNarration()
+    {
+        if (_midGameShown || NarrationManager.Instance == null) return;
+        if (midGameNarration == null || midGameNarration.Length == 0) return;
+
+        _midGameShown = true;
+        NarrationManager.Instance.autoAdvance = true;
+        NarrationManager.Instance.autoDelay   = 2f;
+        NarrationManager.Instance.Play(midGameNarration);
+    }
+
+    // ── Game Over ─────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Called from PlayerAnimationController or EnemyBase the first time the player dies.
     /// </summary>
     public void TriggerGameOver()
     {
-        if (gameOverTriggered) return;
-        gameOverTriggered = true;
+        if (_gameOverTriggered) return;
+        _gameOverTriggered = true;
         GameStarted = false;
-
         StartCoroutine(GameOverSequence());
     }
 
     private IEnumerator GameOverSequence()
     {
-        // Stop player movement immediately
         if (playerMovement != null) playerMovement.enabled = false;
 
-        // Force player into Defeated animation
         if (playerAnimator != null)
         {
             playerAnimator.SetFloat("Speed", 0f);
             playerAnimator.SetBool("IsDead", true);
         }
 
-        // Brief pause so Defeated anim can start
         yield return new WaitForSeconds(0.3f);
 
-        // Stop enemy — EnemyAnimationController detects zero movement → plays idle
         if (enemyBase     != null) enemyBase.enabled = false;
         if (enemyAnimator != null) enemyAnimator.SetFloat("Speed", 0f);
 
-        // Wait for Defeated animation to play before showing text
         yield return new WaitForSeconds(1.5f);
 
-        // Show GAME OVER
+        // Show brief GAME OVER text
         if (gameOverText != null)
         {
             gameOverText.text = "GAME OVER";
             gameOverText.gameObject.SetActive(true);
         }
+
+        yield return new WaitForSeconds(gameOverSceneDelay);
+
+        // Load Death scene (narration plays there)
+        SceneFader.LoadScene(deathSceneName);
+    }
+
+    // ── Victory ───────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Called from ArtifactGoal when the player reaches the finish.
+    /// </summary>
+    public void TriggerVictory()
+    {
+        if (_victoryTriggered) return;
+        _victoryTriggered = true;
+        GameStarted = false;
+        StartCoroutine(VictorySequence());
+    }
+
+    private IEnumerator VictorySequence()
+    {
+        if (playerMovement != null) playerMovement.enabled = false;
+        if (enemyBase      != null) enemyBase.enabled      = false;
+
+        yield return new WaitForSeconds(1.5f);
+
+        SceneFader.LoadScene(victorySceneName);
     }
 }

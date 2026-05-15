@@ -15,7 +15,7 @@ public class PickupBase : MonoBehaviour
 
     public int artifactAmount;
     public bool isSneaking = false;
-    public int hitCounter = 3;
+    public int hitCounter = 10;
 
     //Time variable for boost
     private float timer;

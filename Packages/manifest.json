@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "io.realvirtual.mcp": "https://github.com/game4automation/io.realvirtual.mcp.git",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.collab-proxy": "2.10.2",
     "com.unity.ide.rider": "3.0.38",

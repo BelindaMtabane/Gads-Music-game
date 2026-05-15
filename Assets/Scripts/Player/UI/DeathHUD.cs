@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -7,18 +8,19 @@ using TMPro;
 /// Flow:
 ///   1. Scene fades in → "GAME OVER" title shown
 ///   2. Narration plays automatically
-///   3. After narration → Retry and Main Menu buttons appear
+///   3. After narration → RESUME and EXIT buttons appear
+///      • RESUME → reloads MainGameL1
+///      • EXIT   → quits the application
 /// </summary>
 public class DeathHUD : MonoBehaviour
 {
     [Header("Scene names")]
-    public string gameSceneName     = "MainGameL1";
-    public string mainMenuSceneName = "StartScene";
+    public string gameSceneName = "MainGameL1";
 
     [Header("UI References")]
     public TextMeshProUGUI titleText;
-    public Button          retryButton;
-    public Button          mainMenuButton;
+    public Button          retryButton;      // becomes RESUME in-game
+    public Button          mainMenuButton;   // becomes EXIT in-game
     public Button          nextButton;
 
     [Header("Narration lines")]
@@ -35,24 +37,38 @@ public class DeathHUD : MonoBehaviour
     // ── Lifecycle ─────────────────────────────────────────────────────────────
     private void Start()
     {
-        if (titleText    != null) titleText.text = "GAME OVER";
-        if (retryButton  != null) retryButton.gameObject.SetActive(false);
+        UICursor.UnlockForMenu();
+        Time.timeScale = 1f;
+
+        if (titleText != null) titleText.text = "GAME OVER";
+
+        // Label the action buttons
+        SetButtonLabel(retryButton,    "RESUME");
+        SetButtonLabel(mainMenuButton, "EXIT");
+
+        // Hide until narration finishes
+        if (retryButton    != null) retryButton.gameObject.SetActive(false);
         if (mainMenuButton != null) mainMenuButton.gameObject.SetActive(false);
 
-        if (retryButton    != null) retryButton.onClick.AddListener(OnRetry);
-        if (mainMenuButton != null) mainMenuButton.onClick.AddListener(OnMainMenu);
+        if (retryButton    != null) retryButton.onClick.AddListener(OnResume);
+        if (mainMenuButton != null) mainMenuButton.onClick.AddListener(OnExit);
 
-        if (nextButton != null)
-        {
-            nextButton.onClick.AddListener(OnNext);
-            nextButton.gameObject.SetActive(false);
-        }
+        if (retryButton    != null) UIButtonRaycastFix.Apply(retryButton);
+        if (mainMenuButton != null) UIButtonRaycastFix.Apply(mainMenuButton);
+
+        StartCoroutine(BeginNarration());
+    }
+
+    IEnumerator BeginNarration()
+    {
+        yield return NarrationManager.WaitForSceneFade();
 
         var lines = BuildLines();
         if (NarrationManager.Instance != null)
         {
+            NarrationManager.Instance.autoAdvance   = false;
+            NarrationManager.Instance.advanceButton = nextButton;
             NarrationManager.Instance.Play(lines, OnNarrationComplete);
-            if (nextButton != null) nextButton.gameObject.SetActive(true);
         }
         else
         {
@@ -62,17 +78,36 @@ public class DeathHUD : MonoBehaviour
 
     // ── Callbacks ─────────────────────────────────────────────────────────────
 
-    public void OnNext()      => NarrationManager.Instance?.Advance();
-    public void OnRetry()     => SceneFader.LoadScene(gameSceneName);
-    public void OnMainMenu()  => SceneFader.LoadScene(mainMenuSceneName);
+    /// <summary>RESUME — reload the game scene.</summary>
+    public void OnResume()
+    {
+        SceneFader.LoadScene(gameSceneName);
+    }
+
+    /// <summary>EXIT — quit the application (stops Play mode in Editor).</summary>
+    public void OnExit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void OnNarrationComplete()
     {
-        if (nextButton     != null) nextButton.gameObject.SetActive(false);
-        if (retryButton    != null) retryButton.gameObject.SetActive(true);
-        if (mainMenuButton != null) mainMenuButton.gameObject.SetActive(true);
+        AudioManager.Instance?.StopNarrative();
+        if (retryButton    != null) { UIButtonRaycastFix.Apply(retryButton);    UIButtonRaycastFix.BringToFront(retryButton);    retryButton.gameObject.SetActive(true); }
+        if (mainMenuButton != null) { UIButtonRaycastFix.Apply(mainMenuButton); UIButtonRaycastFix.BringToFront(mainMenuButton); mainMenuButton.gameObject.SetActive(true); }
+    }
+
+    private static void SetButtonLabel(Button btn, string label)
+    {
+        if (btn == null) return;
+        var tmp = btn.GetComponentInChildren<TextMeshProUGUI>();
+        if (tmp != null) tmp.text = label;
     }
 
     private NarrationLine[] BuildLines()

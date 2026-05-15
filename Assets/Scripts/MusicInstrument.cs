@@ -27,7 +27,10 @@ public class MusicInstrument : MonoBehaviour
 
         PickupBase pickup = other.GetComponent<PickupBase>();
         if (pickup != null)
+        {
             pickup.artifactAmount += artifactValue;
+            pickup.TryTriggerVictory();
+        }
 
         Animator anim = GetComponent<Animator>();
         if (anim != null)

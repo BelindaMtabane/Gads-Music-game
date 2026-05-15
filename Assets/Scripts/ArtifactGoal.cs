@@ -1,10 +1,11 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class ArtifactGoal : MonoBehaviour
 {
     [Tooltip("Rotate the artifact for visual flair")]
     public float rotationSpeed = 60f;
+
+    private bool _triggered = false;
 
     private void Update()
     {
@@ -13,12 +14,13 @@ public class ArtifactGoal : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player")) return;
+        if (_triggered || !other.CompareTag("Player")) return;
 
         PickupBase pickup = other.GetComponent<PickupBase>();
-        if (pickup != null)
-            pickup.artifactAmount++;
+        if (pickup == null || pickup.artifactAmount < PickupBase.ArtifactsToWin)
+            return;
 
-        SceneManager.LoadScene("VictoryScene");
+        _triggered = true;
+        pickup.TryTriggerVictory();
     }
 }

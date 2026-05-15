@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -35,6 +36,9 @@ public class VictoryHUD : MonoBehaviour
     // ── Lifecycle ─────────────────────────────────────────────────────────────
     private void Start()
     {
+        UICursor.UnlockForMenu();
+        Time.timeScale = 1f;
+
         if (titleText       != null) titleText.text = "YOU WIN!";
         if (playAgainButton != null) playAgainButton.gameObject.SetActive(false);
         if (mainMenuButton  != null) mainMenuButton.gameObject.SetActive(false);
@@ -42,17 +46,22 @@ public class VictoryHUD : MonoBehaviour
         if (playAgainButton != null) playAgainButton.onClick.AddListener(OnPlayAgain);
         if (mainMenuButton  != null) mainMenuButton.onClick.AddListener(OnMainMenu);
 
-        if (nextButton != null)
-        {
-            nextButton.onClick.AddListener(OnNext);
-            nextButton.gameObject.SetActive(false);
-        }
+        if (playAgainButton != null) UIButtonRaycastFix.Apply(playAgainButton);
+        if (mainMenuButton  != null) UIButtonRaycastFix.Apply(mainMenuButton);
+
+        StartCoroutine(BeginNarration());
+    }
+
+    IEnumerator BeginNarration()
+    {
+        yield return NarrationManager.WaitForSceneFade();
 
         var lines = BuildLines();
         if (NarrationManager.Instance != null)
         {
+            NarrationManager.Instance.autoAdvance   = false;
+            NarrationManager.Instance.advanceButton = nextButton;
             NarrationManager.Instance.Play(lines, OnNarrationComplete);
-            if (nextButton != null) nextButton.gameObject.SetActive(true);
         }
         else
         {
@@ -62,17 +71,16 @@ public class VictoryHUD : MonoBehaviour
 
     // ── Callbacks ─────────────────────────────────────────────────────────────
 
-    public void OnNext()       => NarrationManager.Instance?.Advance();
-    public void OnPlayAgain()  => SceneFader.LoadScene(gameSceneName);
-    public void OnMainMenu()   => SceneFader.LoadScene(mainMenuSceneName);
+    public void OnPlayAgain() { SceneFader.LoadScene(gameSceneName); }
+    public void OnMainMenu()  { SceneFader.LoadScene(mainMenuSceneName); }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void OnNarrationComplete()
     {
-        if (nextButton      != null) nextButton.gameObject.SetActive(false);
-        if (playAgainButton != null) playAgainButton.gameObject.SetActive(true);
-        if (mainMenuButton  != null) mainMenuButton.gameObject.SetActive(true);
+        AudioManager.Instance?.StopNarrative();
+        if (playAgainButton != null) { UIButtonRaycastFix.Apply(playAgainButton); UIButtonRaycastFix.BringToFront(playAgainButton); playAgainButton.gameObject.SetActive(true); }
+        if (mainMenuButton  != null) { UIButtonRaycastFix.Apply(mainMenuButton);  UIButtonRaycastFix.BringToFront(mainMenuButton);  mainMenuButton.gameObject.SetActive(true); }
     }
 
     private NarrationLine[] BuildLines()

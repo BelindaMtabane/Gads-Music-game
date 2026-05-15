@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -5,13 +6,10 @@ using TMPro;
 /// <summary>
 /// Drives the Start / Intro scene.
 /// Flow:
-///   1. Scene fades in → narration plays automatically (typewriter)
-///   2. Player can click "Next" to advance each line
-///   3. After all narration lines → PLAY button appears
-///   4. PLAY button → fades to MainGameL1
-///
-/// Assign all references in the Inspector, or run
-/// Tools → Setup Narration Scenes to auto-create the UI.
+///   1. Scene fades in → narrative audio starts + typewriter narration plays
+///   2. Player clicks NEXT to advance each line (audio keeps playing)
+///   3. After all lines → audio fades out, PLAY button appears
+///   4. PLAY → fades to MainGameL1
 /// </summary>
 public class StartSceneUI : MonoBehaviour
 {
@@ -22,13 +20,13 @@ public class StartSceneUI : MonoBehaviour
     public Button playButton;
     public Button nextButton;
 
-    [Header("Narration lines (edit text here)")]
-    [TextArea(2,5)]
+    [Header("Narration lines (edit text in Inspector)")]
+    [TextArea(2, 5)]
     public string[] narrationLines = new string[]
     {
-        "Welcome to Gads Music Game!",
+        "Welcome to Rhythm Raiders!",
         "You are a musician on the run. Collect all the instruments before the security guard catches you!",
-        "Use the arrow keys or WASD to move. Press Space to jump.",
+        "Use the arrow keys or WASD to move, and Space to jump.",
         "Avoid obstacles, collect power-ups, and reach the goal. Good luck!"
     };
 
@@ -37,32 +35,37 @@ public class StartSceneUI : MonoBehaviour
     // ── Lifecycle ─────────────────────────────────────────────────────────────
     private void Start()
     {
-        // Hide play button until narration finishes
+        UICursor.UnlockForMenu();
+        Time.timeScale = 1f;
+
         if (playButton != null) playButton.gameObject.SetActive(false);
-        if (nextButton != null)
-        {
-            nextButton.onClick.AddListener(OnNext);
-            nextButton.gameObject.SetActive(false);
-        }
 
-        // Build NarrationLine array from the plain-text array
+        if (playButton != null)
+            UIButtonRaycastFix.Apply(playButton);
+
+        StartCoroutine(BeginIntro());
+    }
+
+    IEnumerator BeginIntro()
+    {
+        yield return NarrationManager.WaitForSceneFade();
+
+        AudioManager.Instance?.PlayNarrative();
+
         var lines = BuildLines();
-
-        // Start narration; show play button when done
         if (NarrationManager.Instance != null)
         {
+            NarrationManager.Instance.autoAdvance   = false;
+            NarrationManager.Instance.advanceButton = nextButton;
             NarrationManager.Instance.Play(lines, OnNarrationComplete);
-            if (nextButton != null) nextButton.gameObject.SetActive(true);
         }
         else
         {
-            // No NarrationManager in scene — skip straight to play button
             OnNarrationComplete();
         }
     }
 
     // ── Button callbacks ──────────────────────────────────────────────────────
-
     public void OnNext()
     {
         NarrationManager.Instance?.Advance();
@@ -70,13 +73,16 @@ public class StartSceneUI : MonoBehaviour
 
     public void OnPlay()
     {
+        AudioManager.Instance?.StopNarrative();
         SceneFader.LoadScene(gameSceneName);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-
     private void OnNarrationComplete()
     {
+        // Stop narrative audio when all lines are done
+        AudioManager.Instance?.StopNarrative();
+
         if (nextButton != null) nextButton.gameObject.SetActive(false);
         if (playButton != null)
         {

@@ -67,7 +67,7 @@ public class SetupNarrationScenes
                              Color.white, new Vector2(0, 0), new Vector2(1, 1));
 
         // Title
-        var title = EnsureTMP(canvas, "TitleText", "GADS MUSIC GAME",
+        var title = EnsureTMP(canvas, "TitleText", "RHYTHM RAIDERS",
                               72, FontStyle.Bold, Color.white,
                               new Vector2(0.1f, 0.75f), new Vector2(0.9f, 0.95f));
 
@@ -325,28 +325,17 @@ public class SetupNarrationScenes
 
     private static void EnsureFader(GameObject canvas)
     {
-        if (canvas.transform.Find("FadeOverlay") != null) return;
+        // SceneFader now self-creates its own persistent Canvas + Image at runtime.
+        // We just need a SceneFader GameObject in the scene — no fadeImage wiring needed.
+        var legacyOverlay = canvas.transform.Find("FadeOverlay");
+        if (legacyOverlay != null)
+            legacyOverlay.gameObject.SetActive(false);
 
-        var go = new GameObject("FadeOverlay");
-        go.transform.SetParent(canvas.transform, false);
+        if (canvas.transform.Find("SceneFader") != null) return;
 
-        var img = go.AddComponent<Image>();
-        img.color = Color.black;
-        img.raycastTarget = true;
-
-        var rt = go.GetComponent<RectTransform>();
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = rt.offsetMax = Vector2.zero;
-
-        // Put fader on top
-        go.transform.SetAsLastSibling();
-
-        // SceneFader on a persistent GO
         var faderGO = new GameObject("SceneFader");
         faderGO.transform.SetParent(canvas.transform, false);
-        var fader = faderGO.AddComponent<SceneFader>();
-        fader.fadeImage = img;
+        faderGO.AddComponent<SceneFader>();
 
         EditorUtility.SetDirty(canvas);
     }
@@ -427,6 +416,8 @@ public class SetupNarrationScenes
         }
         if (font != null) tmp.font = font;
 
+        tmp.raycastTarget = false;
+
         SetAnchors(go, anchorMin, anchorMax);
         return tmp;
     }
@@ -460,6 +451,7 @@ public class SetupNarrationScenes
         tmp.color     = Color.white;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.fontStyle = FontStyles.Bold;
+        tmp.raycastTarget = false;
 
         var lrt = labelGO.GetComponent<RectTransform>();
         lrt.anchorMin = Vector2.zero;

@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
@@ -14,6 +15,7 @@ using TMPro;
 ///   • Manual advance (click/tap) OR auto-advance after a set delay
 ///   • UnityEvent callback when all lines are done
 /// </summary>
+[DefaultExecutionOrder(-50)]
 public class NarrationManager : MonoBehaviour
 {
     // ── Singleton ─────────────────────────────────────────────────────────────
@@ -41,6 +43,10 @@ public class NarrationManager : MonoBehaviour
     [Tooltip("Seconds to wait after a line finishes before advancing (autoAdvance only).")]
     public float autoDelay  = 2.5f;
 
+    [Header("Input")]
+    [Tooltip("Optional NEXT button — wired automatically when Play() starts.")]
+    public Button advanceButton;
+
     [Header("Audio")]
     [Tooltip("AudioSource used for narration voice clips.")]
     public AudioSource voiceSource;
@@ -52,6 +58,8 @@ public class NarrationManager : MonoBehaviour
     private bool             _lineComplete;
     private UnityAction      _onAllDone;
 
+    public bool IsPlaying => _lines != null;
+
     // ─────────────────────────────────────────────────────────────────────────
     private void Awake()
     {
@@ -60,6 +68,15 @@ public class NarrationManager : MonoBehaviour
         Instance = this;
 
         if (narrationPanel != null) narrationPanel.SetActive(false);
+    }
+
+    private void Update()
+    {
+        if (_lines == null) return;
+
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) ||
+            Input.GetKeyDown(KeyCode.KeypadEnter))
+            Advance();
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -78,8 +95,64 @@ public class NarrationManager : MonoBehaviour
         _index     = 0;
         _onAllDone = onComplete;
 
-        if (narrationPanel != null) narrationPanel.SetActive(true);
+        BindAdvanceButton();
+
+        if (narrationPanel != null)
+        {
+            narrationPanel.SetActive(true);
+            narrationPanel.transform.SetAsLastSibling();
+
+            var panelImage = narrationPanel.GetComponent<Image>();
+            if (panelImage != null)
+                panelImage.raycastTarget = false;
+
+            UIButtonRaycastFix.DisableTextRaycasts(narrationPanel);
+        }
+
+        if (advanceButton != null)
+            advanceButton.transform.SetAsLastSibling();
+
         ShowLine(_index);
+    }
+
+    /// <summary>Play lines and wait until the sequence finishes (uses realtime waits).</summary>
+    public IEnumerator PlayAndWait(NarrationLine[] lines, UnityAction onComplete = null)
+    {
+        if (lines == null || lines.Length == 0)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        bool done = false;
+        Play(lines, () =>
+        {
+            onComplete?.Invoke();
+            done = true;
+        });
+
+        while (!done)
+            yield return null;
+    }
+
+    /// <summary>Wait until SceneFader finishes fading in (safe to call when no fader exists).</summary>
+    public static System.Collections.IEnumerator WaitForSceneFade()
+    {
+        while (SceneFader.Instance != null && SceneFader.Instance.IsBlocking)
+            yield return null;
+        yield return null;
+    }
+
+    private void BindAdvanceButton()
+    {
+        if (advanceButton == null) return;
+
+        UIButtonRaycastFix.Apply(advanceButton);
+        UIButtonRaycastFix.BringToFront(advanceButton);
+        advanceButton.interactable = true;
+        advanceButton.onClick.RemoveListener(Advance);
+        advanceButton.onClick.AddListener(Advance);
+        advanceButton.gameObject.SetActive(true);
     }
 
     /// <summary>
@@ -175,6 +248,7 @@ public class NarrationManager : MonoBehaviour
     {
         _lines = null;
         if (narrationPanel != null) narrationPanel.SetActive(false);
+        if (advanceButton != null) advanceButton.gameObject.SetActive(false);
         _onAllDone?.Invoke();
     }
 }

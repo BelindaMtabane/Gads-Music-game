@@ -50,6 +50,10 @@ public class FixURPMaterials
     {
         int fixed1 = FixAssetMaterials();
         int fixed2 = FixSceneMaterials();
+
+        // Save the open scene so fixes survive restarts
+        UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
+
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log($"[FixURP] Done — upgraded {fixed1} asset material(s) and {fixed2} scene material(s) to URP Lit.");
@@ -59,11 +63,11 @@ public class FixURPMaterials
     [MenuItem("Tools/Fix URP Pink Materials - Characters Only")]
     public static void FixCharacterMaterials()
     {
-        int count = FixSceneMaterials();
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-        Debug.Log($"[FixURP] Fixed {count} character material(s).");
+        FixCharacterURPMaterials.FixAll();
     }
+
+    /// <summary>Public so FixCharacterURPMaterials can reuse upgrade logic.</summary>
+    public static bool UpgradeMaterial(Material mat, Shader urpLit) => UpgradeMat(mat, urpLit);
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -121,12 +125,13 @@ public class FixURPMaterials
     static bool UpgradeMat(Material mat, Shader urpLit)
     {
         string sn = mat.shader.name;
-        // Keep anything already URP, Unlit, or TextMeshPro
+        // Keep anything already correct URP, Unlit, or TextMeshPro
+        // NOTE: do NOT skip Hidden/ — Hidden/InternalErrorShader is the pink error
+        //       shader Unity uses when a shader is missing, and we need to fix those.
         if (sn.StartsWith("Universal Render Pipeline") ||
             sn.StartsWith("Unlit") ||
             sn.StartsWith("TextMeshPro") ||
-            sn.StartsWith("TMPro") ||
-            sn.StartsWith("Hidden/"))
+            sn.StartsWith("TMPro"))
             return false;
 
         // Grab existing texture & colour before switching shader

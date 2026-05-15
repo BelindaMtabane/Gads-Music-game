@@ -17,12 +17,10 @@ public class PlayerAnimationController : MonoBehaviour
 
     private PlayerMovement movement;
     private PickupBase     pickup;
-    private CharacterController cc;
 
     [Tooltip("Y position below which the player is considered to have fallen to death")]
     public float fallDeathY = -5f;
 
-    private bool  wasGrounded   = true;
     private float smoothedSpeed = 0f;
     private bool  wasDead       = false;
 
@@ -30,7 +28,6 @@ public class PlayerAnimationController : MonoBehaviour
     {
         movement = GetComponent<PlayerMovement>();
         pickup   = GetComponent<PickupBase>();
-        cc       = GetComponent<CharacterController>();
 
         if (characterAnimator == null)
             characterAnimator = GetComponentInChildren<Animator>();
@@ -62,14 +59,8 @@ public class PlayerAnimationController : MonoBehaviour
         smoothedSpeed = Mathf.MoveTowards(smoothedSpeed, target, Time.deltaTime / speedDampTime);
         characterAnimator.SetFloat("Speed", smoothedSpeed);
 
-        // ── Jump: fire trigger ONCE on takeoff (grounded → airborne) ──────
-        if (!isDead)
-        {
-            bool isGrounded = cc != null ? cc.isGrounded : true;
-            if (wasGrounded && !isGrounded)
-                characterAnimator.SetTrigger("Jump");
-            wasGrounded = isGrounded;
-        }
+        if (!isDead && movement != null && movement.DidJumpThisFrame)
+            characterAnimator.SetTrigger("Jump");
 
         // ── Dead ──────────────────────────────────────────────────────────
         characterAnimator.SetBool("IsDead", isDead);

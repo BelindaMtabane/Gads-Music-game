@@ -38,6 +38,9 @@ public class GameManager : MonoBehaviour
 
     // ── In-game narration ─────────────────────────────────────────────────────
     [Header("In-Game Narration")]
+    [Tooltip("Controller for the in-game narration popup (has the RESUME button).")]
+    public InGameNarrationController inGameNarration;
+
     [Tooltip("Lines shown as a popup right after GO! at the start of the run.")]
     public NarrationLine[] startNarration = new NarrationLine[]
     {
@@ -72,7 +75,12 @@ public class GameManager : MonoBehaviour
 
         var playerGO = playerMovement != null ? playerMovement.gameObject : null;
         if (playerAnimator == null && playerGO != null)
-            playerAnimator = playerGO.GetComponentInChildren<Animator>();
+        {
+            var animCtrl = playerGO.GetComponent<PlayerAnimationController>();
+            playerAnimator = animCtrl != null && animCtrl.characterAnimator != null
+                ? animCtrl.characterAnimator
+                : playerGO.GetComponentInChildren<Animator>();
+        }
 
         var enemyGO = enemyBase != null ? enemyBase.gameObject : null;
         if (enemyAnimator == null && enemyGO != null)
@@ -90,6 +98,9 @@ public class GameManager : MonoBehaviour
         if (enemyBase      != null) enemyBase.enabled      = false;
         if (playerAnimator != null) playerAnimator.SetFloat("Speed", 0f);
         if (enemyAnimator  != null) enemyAnimator.SetFloat("Speed", 0f);
+
+        yield return NarrationManager.WaitForSceneFade();
+        yield return PlayStartNarrationAndWait();
 
         for (int i = countdownSeconds; i > 0; i--)
         {
@@ -112,20 +123,17 @@ public class GameManager : MonoBehaviour
         GameStarted = true;
         if (playerMovement != null) playerMovement.enabled = true;
         if (enemyBase      != null) enemyBase.enabled      = true;
-
-        // Show start narration popup (auto-advance, non-blocking)
-        PlayStartNarration();
     }
 
     // ── In-game narration ─────────────────────────────────────────────────────
-    private void PlayStartNarration()
+    private IEnumerator PlayStartNarrationAndWait()
     {
-        if (NarrationManager.Instance == null) return;
-        if (startNarration == null || startNarration.Length == 0) return;
+        if (startNarration == null || startNarration.Length == 0) yield break;
+        if (NarrationManager.Instance == null) yield break;
 
         NarrationManager.Instance.autoAdvance = true;
-        NarrationManager.Instance.autoDelay   = 2.5f;
-        NarrationManager.Instance.Play(startNarration);
+        NarrationManager.Instance.autoDelay   = 3f;
+        yield return NarrationManager.Instance.PlayAndWait(startNarration);
     }
 
     /// <summary>
@@ -165,12 +173,15 @@ public class GameManager : MonoBehaviour
             playerAnimator.SetBool("IsDead", true);
         }
 
-        yield return new WaitForSeconds(0.3f);
+        // Use unscaled time so these delays work even if Time.timeScale == 0
+        // (e.g. narration panel was open when the player died)
+        Time.timeScale = 1f;   // always restore time before the death sequence
+        yield return new WaitForSecondsRealtime(0.3f);
 
         if (enemyBase     != null) enemyBase.enabled = false;
         if (enemyAnimator != null) enemyAnimator.SetFloat("Speed", 0f);
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSecondsRealtime(1.5f);
 
         // Show brief GAME OVER text
         if (gameOverText != null)
@@ -179,7 +190,7 @@ public class GameManager : MonoBehaviour
             gameOverText.gameObject.SetActive(true);
         }
 
-        yield return new WaitForSeconds(gameOverSceneDelay);
+        yield return new WaitForSecondsRealtime(gameOverSceneDelay);
 
         // Load Death scene (narration plays there)
         SceneFader.LoadScene(deathSceneName);
@@ -187,11 +198,18 @@ public class GameManager : MonoBehaviour
 
     // ── Victory ───────────────────────────────────────────────────────────────
     /// <summary>
-    /// Called from ArtifactGoal when the player reaches the finish.
+    /// Loads the victory scene after the win condition is met (ArtifactsToWin artifacts collected).
     /// </summary>
     public void TriggerVictory()
     {
         if (_victoryTriggered) return;
+
+        PickupBase pickup = playerMovement != null
+            ? playerMovement.GetComponent<PickupBase>()
+            : null;
+        if (pickup != null && pickup.artifactAmount < PickupBase.ArtifactsToWin)
+            return;
+
         _victoryTriggered = true;
         GameStarted = false;
         StartCoroutine(VictorySequence());
@@ -202,7 +220,8 @@ public class GameManager : MonoBehaviour
         if (playerMovement != null) playerMovement.enabled = false;
         if (enemyBase      != null) enemyBase.enabled      = false;
 
-        yield return new WaitForSeconds(1.5f);
+        Time.timeScale = 1f;   // restore in case narration had it paused
+        yield return new WaitForSecondsRealtime(1.5f);
 
         SceneFader.LoadScene(victorySceneName);
     }

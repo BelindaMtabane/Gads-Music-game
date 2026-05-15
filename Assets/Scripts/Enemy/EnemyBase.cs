@@ -4,7 +4,7 @@ public class EnemyBase : MonoBehaviour
 {
     //Declare variables
     public Transform player;
-    private float speed = 15f;
+    private float speed = 10f;
     private float boostedSpeed = 34f;
     private float speedBoostTime = 10f;
     public float boostDuration = 10f;
@@ -69,7 +69,7 @@ public class EnemyBase : MonoBehaviour
         //Return back to normal speed
         if (timer >= boostDuration && hasBoosted)
         {
-            speed = 15f;
+            speed = 10f;
 
             hasBoosted = false;
 

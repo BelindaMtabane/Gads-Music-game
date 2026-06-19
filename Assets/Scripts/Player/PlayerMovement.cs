@@ -85,7 +85,9 @@ public class PlayerMovement : MonoBehaviour
         if (!enabled || !GameManager.GameStarted)
             return;
 
-        UICursor.LockForGameplay();
+        // Skip cursor lock while paused — pause menu needs the cursor visible and free.
+        if (Time.timeScale > 0f)
+            UICursor.LockForGameplay();
 
         groundMask = Ground;
         UpdateGrounded();

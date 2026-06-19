@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 
 /// <summary>
@@ -31,9 +32,11 @@ public static class SetupPauseScreen
     public static void Setup()
     {
         EnsureTextureImport();
-        SetupScene(GameplaySceneNames.L1Path, true, true);
+        SetupScene(GameplaySceneNames.L1Path,  true,  true);
+        SetupScene(GameplaySceneNames.L2Path,  true,  true);
+        SetupScene(GameplaySceneNames.L3Path,  true,  true);
         SetupScene("Assets/Scenes/StartScene.unity", false, false);
-        Debug.Log("[SetupPauseScreen] Pause UI applied to MainGameL1Opera and StartScene.");
+        Debug.Log("[SetupPauseScreen] Pause UI applied to all gameplay scenes and StartScene.");
     }
 
     private static void SetupScene(string scenePath, bool requireGameStarted, bool showMainMenuButton)
@@ -51,6 +54,8 @@ public static class SetupPauseScreen
 
         FixCanvasScale(canvas);
         FixCanvasScaler(canvas);
+        EnsureGraphicRaycaster(canvas);
+        EnsureEventSystem(scene);
 
         var pausePanel = EnsurePausePanel(canvas);
         EnsureBackground(pausePanel);
@@ -376,6 +381,29 @@ public static class SetupPauseScreen
         var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
             "Assets/Unity UI Samples/Fonts/Jupiter/Jupiter SDF.asset");
         if (font != null) tmp.font = font;
+    }
+
+    /// <summary>GraphicRaycaster is required for button clicks to register.</summary>
+    private static void EnsureGraphicRaycaster(GameObject canvas)
+    {
+        if (canvas.GetComponent<GraphicRaycaster>() == null)
+        {
+            canvas.AddComponent<GraphicRaycaster>();
+            EditorUtility.SetDirty(canvas);
+        }
+    }
+
+    /// <summary>EventSystem is required for any UI interaction.</summary>
+    private static void EnsureEventSystem(UnityEngine.SceneManagement.Scene scene)
+    {
+        var es = Object.FindAnyObjectByType<EventSystem>();
+        if (es != null) return;
+
+        var go = new GameObject("EventSystem");
+        UnityEditor.SceneManagement.EditorSceneManager.MoveGameObjectToScene(go, scene);
+        go.AddComponent<EventSystem>();
+        go.AddComponent<StandaloneInputModule>();
+        EditorUtility.SetDirty(go);
     }
 
     private static void FixCanvasScale(GameObject canvas)

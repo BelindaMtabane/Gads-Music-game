@@ -32,6 +32,11 @@ public class PauseMenuHUD : MonoBehaviour
 
     private void Start()
     {
+        // GraphicRaycaster is required for button clicks to register.
+        // If the editor tool was not re-run after this component was added, add it now.
+        if (GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+            gameObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
         if (pausePanel != null)    pausePanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
 

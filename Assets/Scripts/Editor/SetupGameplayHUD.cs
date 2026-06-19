@@ -12,12 +12,12 @@ using TMPro;
 /// </summary>
 public static class SetupGameplayHUD
 {
-    const string ICONS   = "Assets/AIRIDev_Scifi_UI_Icons/Sprites/Icons/";
-    const float  ROW_H   = 58f;
-    const float  PAD_X   = 14f;
-    const float  PAD_Y   = 14f;
-    const float  SPACING = 8f;
-    const float  ICON_SIZE = 50f;
+    const string ICONS     = "Assets/AIRIDev_Scifi_UI_Icons/Sprites/Icons/";
+    const float  ROW_H    = 48f;
+    const float  PAD_X    = 12f;
+    const float  PAD_Y    = 10f;
+    const float  SPACING  = 4f;
+    const float  ICON_SIZE = 40f;
 
     // ── Entry point ──────────────────────────────────────────────────────────
 
@@ -28,26 +28,37 @@ public static class SetupGameplayHUD
         if (canvas == null) { Debug.LogError("[HUD] No Canvas found in scene."); return; }
         var ct = canvas.transform;
 
-        // Remove old plain HUD text objects and any previous HUD panels
+        // Remove old plain HUD text objects and any previous HUD panels/root
         foreach (var n in new[] { "health", "artifact", "Hitsleft",
-                                   "HUD_LeftPanel", "HUD_RightPanel" })
+                                   "HUD_LeftPanel", "HUD_RightPanel", "HUD_Root" })
             DestroyChild(ct, n);
+
+        // ── HUD_Root — scale this in the Inspector to resize the whole HUD ──
+        var rootGO = new GameObject("HUD_Root");
+        rootGO.transform.SetParent(ct, false);
+        var rootRT          = rootGO.AddComponent<RectTransform>();
+        rootRT.anchorMin    = Vector2.zero;
+        rootRT.anchorMax    = Vector2.one;
+        rootRT.offsetMin    = Vector2.zero;
+        rootRT.offsetMax    = Vector2.zero;
+        rootGO.AddComponent<HUDScaler>();   // exposes Scale + IconSize sliders in Inspector
+        var rootT = rootGO.transform;
 
         // ── Left panel — stats ───────────────────────────────────────────────
         // 5 rows: Vibe, Shield, Artifacts, Guard, Boost
         int leftRows     = 5;
         float leftHeight = PAD_Y + leftRows * ROW_H + (leftRows - 1) * SPACING + PAD_Y;
-        var leftRT = MakePanel(ct, "HUD_LeftPanel",
+        var leftRT = MakePanel(rootT, "HUD_LeftPanel",
             anchorMin:       new Vector2(0f, 1f),
             anchorMax:       new Vector2(0f, 1f),
             anchoredPos:     new Vector2(16f, -16f),
-            size:            new Vector2(370f, leftHeight));
+            size:            new Vector2(360f, leftHeight));
 
-        var vibeText     = MakeRow(leftRT, "VibeRow",     "Icon_Energy.png.png",  0);
-        var shieldText   = MakeRow(leftRT, "ShieldRow",   "Icon_Shield.png.png",  1);
-        var artifactText = MakeRow(leftRT, "ArtifactRow", "Icon_Trophy.png.png",  2);
-        var guardText    = MakeRow(leftRT, "GuardRow",    "Icon_Drone.png.png",   3);
-        var boostText    = MakeRow(leftRT, "BoostRow",    "Icon_Boost.png.png",   4);
+        var vibeText     = MakeRow(leftRT, "VibeRow",     "Icon_Energy.png.png",  0, "Vibe");
+        var shieldText   = MakeRow(leftRT, "ShieldRow",   "Icon_Shield.png.png",  1, "Shield");
+        var artifactText = MakeRow(leftRT, "ArtifactRow", "Icon_Trophy.png.png",  2, "Artifacts");
+        var guardText    = MakeRow(leftRT, "GuardRow",    "Icon_Drone.png.png",   3, "Guard");
+        var boostText    = MakeRow(leftRT, "BoostRow",    "Icon_Boost.png.png",   4, "Boost");
 
         // Boost row starts hidden — HUDfunctions activates it when a boost is active
         boostText.transform.parent.gameObject.SetActive(false);
@@ -62,15 +73,15 @@ public static class SetupGameplayHUD
         // ── Right panel — score + level ──────────────────────────────────────
         int rightRows     = 2;
         float rightHeight = PAD_Y + rightRows * ROW_H + (rightRows - 1) * SPACING + PAD_Y;
-        var rightRT = MakePanel(ct, "HUD_RightPanel",
+        var rightRT = MakePanel(rootT, "HUD_RightPanel",
             anchorMin:   new Vector2(1f, 1f),
             anchorMax:   new Vector2(1f, 1f),
             anchoredPos: new Vector2(-16f, -16f),
             size:        new Vector2(250f, rightHeight));
         rightRT.pivot = Vector2.one;   // pivot top-right so anchoredPos is from top-right corner
 
-        var scoreText = MakeRow(rightRT, "ScoreRow", "Icon_Coin.png.png", 0, TextAlignmentOptions.Left);
-        var levelText = MakeRow(rightRT, "LevelRow",  null,               1, TextAlignmentOptions.Left);
+        var scoreText = MakeRow(rightRT, "ScoreRow", "Icon_Coin.png.png", 0, "Score",  TextAlignmentOptions.Left);
+        var levelText = MakeRow(rightRT, "LevelRow", null,                1, "Level",  TextAlignmentOptions.Left);
         StyleText(scoreText, new Color(0.9f, 0.9f, 0.9f));   // white
         StyleText(levelText, new Color(0.7f, 0.7f, 1f));     // soft blue
 
@@ -160,7 +171,7 @@ public static class SetupGameplayHUD
     /// Returns the TextMeshProUGUI component on the text child.
     /// </summary>
     static TextMeshProUGUI MakeRow(RectTransform panel, string rowName,
-        string iconFile, int rowIndex,
+        string iconFile, int rowIndex, string label = "",
         TextAlignmentOptions align = TextAlignmentOptions.Left)
     {
         float yOffset = -(PAD_Y + rowIndex * (ROW_H + SPACING));
@@ -215,17 +226,19 @@ public static class SetupGameplayHUD
         textGO.transform.SetParent(rowGO.transform, false);
 
         var textRT = textGO.AddComponent<RectTransform>();
-        // Width: full row minus icon space (if icon present)
-        float textWidth = string.IsNullOrEmpty(iconFile) ? 220f : 260f;
+        // Text fills the rest of the row after the icon
+        float textWidth = 280f;
         textRT.sizeDelta = new Vector2(textWidth, ROW_H);
 
         var tmp = textGO.AddComponent<TextMeshProUGUI>();
-        tmp.fontSize      = 38f;
-        tmp.fontStyle     = FontStyles.Bold;
-        tmp.color         = Color.white;
-        tmp.alignment     = align;
-        tmp.text          = "—";
-        tmp.raycastTarget = false;
+        tmp.fontSize            = 30f;
+        tmp.fontStyle           = FontStyles.Bold;
+        tmp.color               = Color.white;
+        tmp.alignment           = align;
+        tmp.text                = string.IsNullOrEmpty(label) ? "——" : label;
+        tmp.raycastTarget       = false;
+        tmp.enableWordWrapping  = false;
+        tmp.overflowMode        = TextOverflowModes.Overflow;  // never clip label
         TmpUiUtility.EnsureFont(tmp);
 
         var textLE = textGO.AddComponent<LayoutElement>();

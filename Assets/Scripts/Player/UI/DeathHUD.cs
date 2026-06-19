@@ -13,7 +13,7 @@ using TMPro;
 public class DeathHUD : MonoBehaviour
 {
     [Header("Scene names")]
-    public string gameSceneName  = "MainGameL1";
+    public string gameSceneName  = "MainGameL1Opera";
     public string menuSceneName  = "StartScene";
 
     [Header("UI References")]
@@ -58,7 +58,7 @@ public class DeathHUD : MonoBehaviour
         GameOverOverlay.Hide();
         GameplayCanvasGuard.FixAllCanvasesInScene();
 
-        if (gameSceneName == "MainGameL1" || string.IsNullOrEmpty(gameSceneName))
+        if (gameSceneName == "MainGameL1Opera" || string.IsNullOrEmpty(gameSceneName))
             gameSceneName = LevelProgress.GetGameplayScene();
 
         if (titleText != null)

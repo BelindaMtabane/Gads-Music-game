@@ -24,7 +24,7 @@ public class SetupAudio
 
     private static readonly string[] Scenes = {
         "Assets/Scenes/StartScene.unity",
-        "Assets/Scenes/MainGameL1.unity",
+        "Assets/Scenes/MainGameL1Opera.unity",
         "Assets/Scenes/DeathScene.unity",
         "Assets/Scenes/VictoryScene.unity",
     };
@@ -95,8 +95,8 @@ public class SetupAudio
             }
         }
 
-        // ── InGameNarrationController (MainGameL1 only) ───────────────────────
-        if (sceneName == "MainGameL1")
+        // ── InGameNarrationController (MainGameL1Opera only) ─────────────────
+        if (sceneName == "MainGameL1Opera")
         {
             var narPanel = GameObject.Find("NarrationPanel");
             if (narPanel != null)

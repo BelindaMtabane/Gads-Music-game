@@ -12,19 +12,19 @@ EditorBuildSettings:
     path: Assets/Scenes/StartScene.unity
     guid: 5a90d783dba6940428fb935c53003195
   - enabled: 1
-    path: Assets/Scenes/MainGameL1.unity
+    path: Assets/Scenes/MainGameL1Opera.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
     path: Assets/Scenes/Level2IntroScene.unity
     guid: 83cecf0dbb7da984a9aac8030d7bb64b
   - enabled: 1
-    path: Assets/Scenes/MainGameL2.unity
+    path: Assets/Scenes/Level2Museum.unity
     guid: 46e0988568e84f4c93d4457bcddb50b7
   - enabled: 1
     path: Assets/Scenes/Level3IntroScene.unity
     guid: 84351c143dae7c848ab6dfb30abd9ea1
   - enabled: 1
-    path: Assets/Scenes/MainGameL3.unity
+    path: Assets/Scenes/Level3UndergroundDance.unity
     guid: 7efa070a2f38459d9dc16b4ef7824e00
   - enabled: 1
     path: Assets/Scenes/DeathScene.unity

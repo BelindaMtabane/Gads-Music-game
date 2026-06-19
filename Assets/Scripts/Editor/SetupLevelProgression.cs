@@ -11,9 +11,9 @@ using TMPro;
 /// </summary>
 public static class SetupLevelProgression
 {
-    const string L1Path = "Assets/Scenes/MainGameL1.unity";
-    const string L2Path = "Assets/Scenes/MainGameL2.unity";
-    const string L3Path = "Assets/Scenes/MainGameL3.unity";
+    const string L1Path = "Assets/Scenes/MainGameL1Opera.unity";
+    const string L2Path = "Assets/Scenes/Level2Museum.unity";
+    const string L3Path = "Assets/Scenes/Level3UndergroundDance.unity";
     const string L2IntroPath = "Assets/Scenes/Level2IntroScene.unity";
     const string L3IntroPath = "Assets/Scenes/Level3IntroScene.unity";
 

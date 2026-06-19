@@ -52,7 +52,7 @@ public static class LevelCatalog
         levelNumber      = 1,
         displayName      = "Opera House",
         codename         = "The Red Curtain Run",
-        gameplayScene    = "MainGameL1",
+        gameplayScene    = "MainGameL1Opera",
         nextIntroScene   = "Level2IntroScene",
         briefingTitle    = "Opera House — Level 1",
         gameplayCutscene = LevelCutsceneType.OperaCurtain,
@@ -81,7 +81,7 @@ public static class LevelCatalog
         levelNumber      = 2,
         displayName      = "Music Museum",
         codename         = "Hall of Echoes",
-        gameplayScene    = "MainGameL2",
+        gameplayScene    = "Level2Museum",
         nextIntroScene   = "Level3IntroScene",
         briefingTitle    = "Music Museum — Level 2",
         gameplayCutscene = LevelCutsceneType.MuseumSecurityDoor,   // cutscene now plays in-game
@@ -110,7 +110,7 @@ public static class LevelCatalog
         levelNumber      = 3,
         displayName      = "Underground Club",
         codename         = "Neon Beat Vault",
-        gameplayScene    = "MainGameL3",
+        gameplayScene    = "Level3UndergroundDance",
         nextIntroScene   = "VictoryScene",
         briefingTitle    = "Underground Club — Level 3",
         gameplayCutscene = LevelCutsceneType.ClubDiscoBall,        // cutscene now plays in-game

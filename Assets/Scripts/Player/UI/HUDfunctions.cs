@@ -103,18 +103,18 @@ public class HUDfunctions : MonoBehaviour
 
         // ── Vibe ──────────────────────────────────────────────────────────────
         TmpUiUtility.SetSafeText(healthText,
-            "Vibe: " + _pickup.currentHealth + " / " + _pickup.maxHealth);
+            $"{_pickup.currentHealth}/{_pickup.maxHealth}");
 
         // ── Artifacts ─────────────────────────────────────────────────────────
         TmpUiUtility.SetSafeText(artifactText,
-            "Artifacts: " + _pickup.artifactAmount + " / " + PickupBase.ArtifactsToWin);
+            $"Artifacts  {_pickup.artifactAmount}/{PickupBase.ArtifactsToWin}");
 
         // ── Shield (hitCounter) ───────────────────────────────────────────────
         int shield          = _pickup.hitCounter;
-        int dangerThreshold = Mathf.Max(1, Mathf.CeilToInt(_maxShield * 0.3f)); // pulse at ≤30%
+        int dangerThreshold = Mathf.Max(1, Mathf.CeilToInt(_maxShield * 0.3f));
         if (hitText != null)
         {
-            TmpUiUtility.SetSafeText(hitText, "Shield: " + shield);
+            TmpUiUtility.SetSafeText(hitText, shield.ToString());
             hitText.color = shield <= dangerThreshold
                 ? Color.Lerp(Color.red, new Color(0.4f, 0.75f, 1f, 1f),
                              Mathf.PingPong(Time.time * 3f, 1f))
@@ -130,17 +130,16 @@ public class HUDfunctions : MonoBehaviour
                     _playerTransform.position.z - _enemy.transform.position.z);
 
                 bool surging = _enemy.IsSurging;
-                string danger = surging       ? $" SURGE! ({_enemy.SurgeTimeLeft:F0}s)"
-                              : dist < 5f    ? " !! CLOSE!"
-                              : dist < 10f   ? " NEAR"
+                string danger = surging      ? $" SURGE {_enemy.SurgeTimeLeft:F0}s"
+                              : dist < 5f   ? " CLOSE!"
+                              : dist < 10f  ? " NEAR"
                               : "";
                 guardDistText.color = surging      ? Color.Lerp(Color.red, Color.yellow,
                                                         Mathf.PingPong(Time.time * 4f, 1f))
                                     : dist < 5f   ? Color.red
                                     : dist < 10f  ? new Color(1f, 0.6f, 0f)
                                     : new Color(1f, 0.4f, 0.4f);
-                TmpUiUtility.SetSafeText(guardDistText,
-                    $"Guard: {dist:F0}m{danger}");
+                TmpUiUtility.SetSafeText(guardDistText, $"{dist:F0}m{danger}");
             }
             else
             {
@@ -153,9 +152,9 @@ public class HUDfunctions : MonoBehaviour
         {
             string boostMsg = "";
             if (_pickup.IsSpeedBoostActive)
-                boostMsg = $"SPEED BOOST  {_pickup.SpeedBoostTimeLeft:F0}s";
+                boostMsg = $"SPEED  {_pickup.SpeedBoostTimeLeft:F0}s";
             else if (_pickup.IsJumpBoostActive)
-                boostMsg = $"JUMP BOOST  {_pickup.JumpBoostTimeLeft:F0}s";
+                boostMsg = $"JUMP  {_pickup.JumpBoostTimeLeft:F0}s";
             else if (_pickup.isSneaking)
                 boostMsg = $"SNEAK  {_pickup.SneakTimeLeft:F0}s";
 
@@ -176,7 +175,7 @@ public class HUDfunctions : MonoBehaviour
 
         // ── Level ─────────────────────────────────────────────────────────────
         TmpUiUtility.SetSafeText(levelText,
-            "Level " + LevelProgress.CurrentLevel);
+            "Lv " + LevelProgress.CurrentLevel);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

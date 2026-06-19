@@ -10,7 +10,7 @@ using TMPro;
 public class LevelIntroScreenHUD : MonoBehaviour
 {
     public int levelNumber = 2;
-    public string gameplaySceneName = "MainGameL2";
+    public string gameplaySceneName = "Level2Museum";
 
     [Header("UI")]
     public Button continueButton;

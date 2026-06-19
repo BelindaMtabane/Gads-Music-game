@@ -8,11 +8,11 @@ using UnityEngine;
 /// Build order:
 ///   0 - SplashScene
 ///   1 - StartScene
-///   2 - MainGameL1
+///   2 - MainGameL1Opera
 ///   3 - Level2IntroScene
-///   4 - MainGameL2
+///   4 - Level2Museum
 ///   5 - Level3IntroScene
-///   6 - MainGameL3
+///   6 - Level3UndergroundDance
 ///   7 - DeathScene
 ///   8 - VictoryScene
 /// </summary>
@@ -22,11 +22,11 @@ public class SetupBuildScenes
     {
         "Assets/Scenes/SplashScene.unity",
         "Assets/Scenes/StartScene.unity",
-        "Assets/Scenes/MainGameL1.unity",
+        "Assets/Scenes/MainGameL1Opera.unity",
         "Assets/Scenes/Level2IntroScene.unity",
-        "Assets/Scenes/MainGameL2.unity",
+        "Assets/Scenes/Level2Museum.unity",
         "Assets/Scenes/Level3IntroScene.unity",
-        "Assets/Scenes/MainGameL3.unity",
+        "Assets/Scenes/Level3UndergroundDance.unity",
         "Assets/Scenes/DeathScene.unity",
         "Assets/Scenes/VictoryScene.unity",
     };
@@ -47,11 +47,11 @@ public class SetupBuildScenes
         Debug.Log("[SetupBuild] Build Settings updated:\n" +
                   "  0 → SplashScene\n" +
                   "  1 → StartScene\n" +
-                  "  2 → MainGameL1\n" +
+                  "  2 → MainGameL1Opera\n" +
                   "  3 → Level2IntroScene\n" +
-                  "  4 → MainGameL2\n" +
+                  "  4 → Level2Museum\n" +
                   "  5 → Level3IntroScene\n" +
-                  "  6 → MainGameL3\n" +
+                  "  6 → Level3UndergroundDance\n" +
                   "  7 → DeathScene\n" +
                   "  8 → VictoryScene");
     }

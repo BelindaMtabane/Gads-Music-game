@@ -129,9 +129,9 @@ public class AudioManager : MonoBehaviour
                 // Narrative audio plays when narration starts (StartSceneUI calls PlayNarrative)
                 break;
 
-            case "MainGameL1":
-            case "MainGameL2":
-            case "MainGameL3":
+            case "MainGameL1Opera":
+            case "Level2Museum":
+            case "Level3UndergroundDance":
                 PlayBackground();
                 break;
 

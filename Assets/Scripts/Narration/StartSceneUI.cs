@@ -16,7 +16,7 @@ public class StartSceneUI : MonoBehaviour
     public static bool OpenDirectlyToMenu;
 
     [Header("Scene to load")]
-    public string gameSceneName = "MainGameL1";
+    public string gameSceneName = "MainGameL1Opera";
 
     [Header("Menu")]
     public GameObject menuPanel;

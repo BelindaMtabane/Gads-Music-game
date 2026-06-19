@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 /// Sounds:
 ///   Background   — looping music during MainGameL1
 ///   Button       — click SFX on any button
-///   Countdown    — tick sound per countdown number
+///   Countdown    — single countdown clip at level start
 ///   Victory      — plays on VictoryScene load
 ///   GameOver     — piano plays on DeathScene load
 ///   Narrative    — plays during intro narration in StartScene
@@ -27,6 +27,20 @@ public class AudioManager : MonoBehaviour
     public AudioClip victorySound;      // game_victory_sound.mp3
     public AudioClip gameOverSound;     // piano_GameOver_Sound.mp3
     public AudioClip narrativeSound;    // narrative_mp3.mp3
+    [Tooltip("Optional second loop for richer in-game music (defaults to background clip).")]
+    public AudioClip backgroundMusicLayer;
+
+    [Header("Pickup SFX")]
+    public AudioClip artifactPickupSound;
+    public AudioClip healthPickupSound;
+    public AudioClip sneakPickupSound;
+    public AudioClip speedPickupSound;
+    public AudioClip jumpPickupSound;
+
+    [Header("Cutscene SFX (optional — procedural fallback if blank)")]
+    public AudioClip curtainCutsceneSound;
+    public AudioClip securityDoorSound;
+    public AudioClip discoBallSound;
 
     // ── Audio sources ─────────────────────────────────────────────────────────
     [Header("Volume")]
@@ -35,8 +49,10 @@ public class AudioManager : MonoBehaviour
     [Range(0f, 1f)] public float narrativeVolume = 1.0f;
 
     private AudioSource _musicSource;
+    private AudioSource _musicLayerSource;
     private AudioSource _sfxSource;
     private AudioSource _narrativeSource;
+    private AudioSource _countdownSource;
 
     // ─────────────────────────────────────────────────────────────────────────
     private void Awake()
@@ -52,12 +68,18 @@ public class AudioManager : MonoBehaviour
 
         // Build three AudioSource components
         _musicSource     = GetComponent<AudioSource>();
+        _musicLayerSource = gameObject.AddComponent<AudioSource>();
         _sfxSource       = gameObject.AddComponent<AudioSource>();
         _narrativeSource = gameObject.AddComponent<AudioSource>();
 
         _musicSource.loop        = true;
         _musicSource.volume      = musicVolume;
         _musicSource.playOnAwake = false;
+
+        _musicLayerSource.loop        = true;
+        _musicLayerSource.volume      = musicVolume * 0.35f;
+        _musicLayerSource.playOnAwake = false;
+        _musicLayerSource.pitch       = 1.02f;
 
         _sfxSource.loop        = false;
         _sfxSource.volume      = sfxVolume;
@@ -66,6 +88,13 @@ public class AudioManager : MonoBehaviour
         _narrativeSource.loop        = false;
         _narrativeSource.volume      = narrativeVolume;
         _narrativeSource.playOnAwake = false;
+
+        _countdownSource = gameObject.AddComponent<AudioSource>();
+        _countdownSource.loop         = false;
+        _countdownSource.volume       = sfxVolume;
+        _countdownSource.playOnAwake  = false;
+        _countdownSource.spatialBlend = 0f;
+        _countdownSource.priority     = 64;
 
         // Auto-play music based on starting scene
         AutoPlayForScene(SceneManager.GetActiveScene().name);
@@ -90,6 +119,8 @@ public class AudioManager : MonoBehaviour
     private void AutoPlayForScene(string sceneName)
     {
         _musicSource.Stop();
+        if (_musicLayerSource != null)
+            _musicLayerSource.Stop();
         _narrativeSource.Stop();
 
         switch (sceneName)
@@ -99,7 +130,13 @@ public class AudioManager : MonoBehaviour
                 break;
 
             case "MainGameL1":
+            case "MainGameL2":
+            case "MainGameL3":
                 PlayBackground();
+                break;
+
+            case "Level2IntroScene":
+            case "Level3IntroScene":
                 break;
 
             case "VictoryScene":
@@ -121,6 +158,15 @@ public class AudioManager : MonoBehaviour
         _musicSource.volume = musicVolume;
         _musicSource.loop   = true;
         _musicSource.Play();
+
+        var layerClip = backgroundMusicLayer != null ? backgroundMusicLayer : backgroundMusic;
+        if (_musicLayerSource != null && layerClip != null)
+        {
+            _musicLayerSource.clip   = layerClip;
+            _musicLayerSource.volume = musicVolume * 0.35f;
+            _musicLayerSource.loop   = true;
+            _musicLayerSource.Play();
+        }
     }
 
     public void PlayVictory()
@@ -130,6 +176,9 @@ public class AudioManager : MonoBehaviour
         _musicSource.volume = musicVolume;
         _musicSource.loop   = false;
         _musicSource.Play();
+
+        if (backgroundMusic != null)
+            _sfxSource.PlayOneShot(backgroundMusic, musicVolume * 0.2f);
     }
 
     public void PlayGameOver()
@@ -155,11 +204,26 @@ public class AudioManager : MonoBehaviour
         _narrativeSource.Stop();
     }
 
-    /// <summary>Play countdown tick. Call once per countdown number.</summary>
-    public void PlayCountdownTick()
+    /// <summary>Play the countdown clip once (visual numbers sync separately).</summary>
+    public void PlayCountdown()
     {
         if (countdownSound == null) return;
-        _sfxSource.PlayOneShot(countdownSound, sfxVolume);
+        _countdownSource.Stop();
+        _countdownSource.clip   = countdownSound;
+        _countdownSource.volume = sfxVolume;
+        _countdownSource.pitch  = 1f;
+        _countdownSource.Play();
+    }
+
+    public void StopCountdown()
+    {
+        _countdownSource.Stop();
+    }
+
+    /// <summary>Deprecated — use PlayCountdown() once at countdown start.</summary>
+    public void PlayCountdownTick()
+    {
+        PlayCountdown();
     }
 
     /// <summary>Play button click SFX. Wire to every Button via ButtonSoundPlayer.</summary>
@@ -169,14 +233,82 @@ public class AudioManager : MonoBehaviour
         _sfxSource.PlayOneShot(buttonSound, sfxVolume);
     }
 
+    /// <summary>Shared pickup palette — pitch-shifted button SFX for cohesion with sneak.</summary>
+    public void PlayPickupSfx(float pitch = 1f, float volumeScale = 0.75f)
+    {
+        if (buttonSound == null) return;
+        _sfxSource.pitch = pitch;
+        _sfxSource.PlayOneShot(buttonSound, sfxVolume * volumeScale);
+        _sfxSource.pitch = 1f;
+    }
+
+    public void PlaySneakPickupSfx() => PlayClipOrFallback(sneakPickupSound, 0.82f, 0.65f);
+    public void PlayArtifactPickupSfx() => PlayClipOrFallback(artifactPickupSound, 1.15f, 0.85f);
+    public void PlayHealthPickupSfx() => PlayClipOrFallback(healthPickupSound, 1f, 0.7f);
+    public void PlaySpeedPickupSfx() => PlayClipOrFallback(speedPickupSound, 1.35f, 0.8f);
+    public void PlayJumpPickupSfx() => PlayClipOrFallback(jumpPickupSound, 1.22f, 0.75f);
+
+    public void PlayCutsceneStinger(LevelCutsceneType type, int phase = 0)
+    {
+        switch (type)
+        {
+            case LevelCutsceneType.OperaCurtain:
+                if (curtainCutsceneSound != null)
+                    _sfxSource.PlayOneShot(curtainCutsceneSound, sfxVolume);
+                else if (phase == 0)
+                    PlayPickupSfx(0.52f, 0.45f);
+                else
+                    PlayPickupSfx(0.68f, 0.55f);
+                break;
+            case LevelCutsceneType.MuseumSecurityDoor:
+                if (securityDoorSound != null)
+                    _sfxSource.PlayOneShot(securityDoorSound, sfxVolume);
+                else if (phase == 0)
+                    PlayPickupSfx(0.42f, 0.7f);
+                else
+                    PlayPickupSfx(0.58f, 0.65f);
+                break;
+            case LevelCutsceneType.ClubDiscoBall:
+                if (discoBallSound != null)
+                    _sfxSource.PlayOneShot(discoBallSound, sfxVolume);
+                else if (phase == 0)
+                    PlayPickupSfx(1.45f, 0.5f);
+                else
+                    PlayPickupSfx(1.75f, 0.6f);
+                break;
+        }
+    }
+
+    private void PlayClipOrFallback(AudioClip clip, float fallbackPitch, float fallbackVolumeScale)
+    {
+        if (clip != null)
+        {
+            _sfxSource.PlayOneShot(clip, sfxVolume);
+            return;
+        }
+
+        PlayPickupSfx(fallbackPitch, fallbackVolumeScale);
+    }
+
     public void StopMusic()
     {
         _musicSource.Stop();
+        if (_musicLayerSource != null)
+            _musicLayerSource.Stop();
     }
 
     public void SetMusicVolume(float v)
     {
         musicVolume = v;
         _musicSource.volume = v;
+        if (_musicLayerSource != null)
+            _musicLayerSource.volume = v * 0.35f;
+    }
+
+    public void SetSfxVolume(float v)
+    {
+        sfxVolume = v;
+        if (_countdownSource != null)
+            _countdownSource.volume = v;
     }
 }

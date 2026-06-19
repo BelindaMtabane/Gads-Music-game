@@ -20,8 +20,10 @@ using TMPro;
 public class SetupNarrationScenes
 {
     // ── Asset paths ───────────────────────────────────────────────────────────
-    private const string BG_PATH     = "Assets/AIRIDev_Scifi_UI_Icons/Sprites/Background/Plain Background.png";
+    private const string BG_PATH     = "Assets/UI/Narration/narration_background.png";
     private const string FONT_PATH   = "Assets/Unity UI Samples/Fonts/Jupiter/Jupiter.ttf";
+    private static readonly Vector2 NarrationTextMin = new Vector2(0.11f, 0.33f);
+    private static readonly Vector2 NarrationTextMax = new Vector2(0.89f, 0.61f);
 
     // ── Menu entry ────────────────────────────────────────────────────────────
     [MenuItem("Tools/Setup Narration Scenes")]
@@ -62,37 +64,18 @@ public class SetupNarrationScenes
         // SceneFader (must be on a DontDestroyOnLoad GO — create as a child for editor preview)
         EnsureFader(canvas);
 
-        // Full-screen background
-        var bg = EnsureImage(canvas, "Background", BG_PATH,
-                             Color.white, new Vector2(0, 0), new Vector2(1, 1));
+        // Full-screen narrative overlay (shown while lines play)
+        var panel = EnsureNarrationOverlay(canvas);
+        panel.SetActive(false);
 
-        // Title
-        var title = EnsureTMP(canvas, "TitleText", "RHYTHM RAIDERS",
-                              72, FontStyle.Bold, Color.white,
-                              new Vector2(0.1f, 0.75f), new Vector2(0.9f, 0.95f));
+        // Narration text on the white area of the art
+        var narrationTmp = EnsureTMP(panel, "NarrationText", "",
+                  30, FontStyle.Normal, new Color(0.12f, 0.12f, 0.12f),
+                  NarrationTextMin, NarrationTextMax);
+        narrationTmp.alignment = TextAlignmentOptions.Center;
+        narrationTmp.verticalAlignment = VerticalAlignmentOptions.Middle;
 
-        // Narration panel (dark semi-transparent box)
-        var panel = EnsurePanel(canvas, "NarrationPanel",
-                                new Color(0, 0, 0, 0.75f),
-                                new Vector2(0.05f, 0.35f), new Vector2(0.95f, 0.72f));
-        panel.SetActive(false);   // NarrationManager activates it
-
-        // Speaker label
-        EnsureTMP(panel, "SpeakerText", "Narrator",
-                  26, FontStyle.Bold, new Color(1f, 0.85f, 0.2f),
-                  new Vector2(0, 0.75f), new Vector2(1, 1f));
-
-        // Narration text body
-        EnsureTMP(panel, "NarrationText", "",
-                  24, FontStyle.Normal, Color.white,
-                  new Vector2(0.02f, 0.05f), new Vector2(0.98f, 0.75f));
-
-        // NEXT button (inside panel)
-        EnsureButton(panel, "NextButton", "NEXT ▶",
-                     new Vector2(0.7f, 0f), new Vector2(1f, 0.22f),
-                     new Color(0.2f, 0.6f, 1f));
-
-        // PLAY button (outside panel, hidden until narration done)
+        // PLAY button (hidden until narration done)
         var playBtn = EnsureButton(canvas, "PlayButton", "PLAY",
                                    new Vector2(0.35f, 0.08f), new Vector2(0.65f, 0.2f),
                                    new Color(0.1f, 0.8f, 0.3f));
@@ -102,14 +85,16 @@ public class SetupNarrationScenes
         var nm = canvas.GetComponent<NarrationManager>() ?? canvas.AddComponent<NarrationManager>();
         nm.narrationPanel = panel;
         nm.narrationText  = panel.transform.Find("NarrationText")?.GetComponent<TextMeshProUGUI>();
-        nm.speakerText    = panel.transform.Find("SpeakerText")?.GetComponent<TextMeshProUGUI>();
-        nm.autoAdvance    = false;
-        nm.charDelay      = 0.03f;
+        nm.speakerText    = null;
+        nm.autoAdvance    = true;
+        nm.autoDelay      = 2.5f;
+        nm.charDelay      = 0.035f;
+        nm.advanceButton  = panel.transform.Find("NextButton")?.GetComponent<Button>();
 
         // Wire StartSceneUI
         var ui = canvas.GetComponent<StartSceneUI>() ?? canvas.AddComponent<StartSceneUI>();
         ui.playButton = playBtn.GetComponent<Button>();
-        ui.nextButton = panel.transform.Find("NextButton")?.GetComponent<Button>();
+        ui.nextButton = nm.advanceButton;
 
         EditorUtility.SetDirty(canvas);
     }
@@ -123,38 +108,19 @@ public class SetupNarrationScenes
         EnsureEventSystem();
         EnsureFader(canvas);
 
-        EnsureImage(canvas, "Background", BG_PATH,
-                    new Color(0.6f, 0.1f, 0.1f, 1f),   // red tint overlay
-                    new Vector2(0, 0), new Vector2(1, 1));
-
-        // Tinted overlay for mood
-        var overlay = EnsurePanel(canvas, "Overlay",
-                                  new Color(0.4f, 0f, 0f, 0.5f),
-                                  new Vector2(0, 0), new Vector2(1, 1));
-
         EnsureTMP(canvas, "TitleText", "GAME OVER",
                   80, FontStyle.Bold, new Color(1f, 0.2f, 0.2f),
                   new Vector2(0.05f, 0.78f), new Vector2(0.95f, 0.96f));
 
-        // Narration panel
-        var panel = EnsurePanel(canvas, "NarrationPanel",
-                                new Color(0, 0, 0, 0.8f),
-                                new Vector2(0.05f, 0.38f), new Vector2(0.95f, 0.75f));
+        var panel = EnsureNarrationOverlay(canvas);
         panel.SetActive(false);
 
-        EnsureTMP(panel, "SpeakerText", "Narrator",
-                  26, FontStyle.Bold, new Color(1f, 0.4f, 0.4f),
-                  new Vector2(0, 0.75f), new Vector2(1, 1f));
+        var narrationTmp = EnsureTMP(panel, "NarrationText", "",
+                  30, FontStyle.Normal, new Color(0.12f, 0.12f, 0.12f),
+                  NarrationTextMin, NarrationTextMax);
+        narrationTmp.alignment = TextAlignmentOptions.Center;
+        narrationTmp.verticalAlignment = VerticalAlignmentOptions.Middle;
 
-        EnsureTMP(panel, "NarrationText", "",
-                  24, FontStyle.Normal, Color.white,
-                  new Vector2(0.02f, 0.05f), new Vector2(0.98f, 0.75f));
-
-        EnsureButton(panel, "NextButton", "NEXT ▶",
-                     new Vector2(0.7f, 0f), new Vector2(1f, 0.22f),
-                     new Color(0.8f, 0.2f, 0.2f));
-
-        // Action buttons
         var retry = EnsureButton(canvas, "RetryButton", "RETRY",
                                  new Vector2(0.1f, 0.08f), new Vector2(0.45f, 0.22f),
                                  new Color(1f, 0.5f, 0f));
@@ -169,15 +135,18 @@ public class SetupNarrationScenes
         var nm = canvas.GetComponent<NarrationManager>() ?? canvas.AddComponent<NarrationManager>();
         nm.narrationPanel = panel;
         nm.narrationText  = panel.transform.Find("NarrationText")?.GetComponent<TextMeshProUGUI>();
-        nm.speakerText    = panel.transform.Find("SpeakerText")?.GetComponent<TextMeshProUGUI>();
-        nm.autoAdvance    = false;
+        nm.speakerText    = null;
+        nm.autoAdvance    = true;
+        nm.autoDelay      = 2.5f;
+        nm.charDelay      = 0.035f;
+        nm.advanceButton  = panel.transform.Find("NextButton")?.GetComponent<Button>();
 
         // Wire DeathHUD
         var hud = canvas.GetComponent<DeathHUD>() ?? canvas.AddComponent<DeathHUD>();
         hud.titleText      = canvas.transform.Find("TitleText")?.GetComponent<TextMeshProUGUI>();
         hud.retryButton    = retry.GetComponent<Button>();
         hud.mainMenuButton = menu.GetComponent<Button>();
-        hud.nextButton     = panel.transform.Find("NextButton")?.GetComponent<Button>();
+        hud.nextButton     = nm.advanceButton;
 
         EditorUtility.SetDirty(canvas);
     }
@@ -191,36 +160,18 @@ public class SetupNarrationScenes
         EnsureEventSystem();
         EnsureFader(canvas);
 
-        EnsureImage(canvas, "Background", BG_PATH,
-                    Color.white,
-                    new Vector2(0, 0), new Vector2(1, 1));
-
-        // Gold overlay
-        EnsurePanel(canvas, "Overlay",
-                    new Color(1f, 0.8f, 0f, 0.15f),
-                    new Vector2(0, 0), new Vector2(1, 1));
-
         EnsureTMP(canvas, "TitleText", "YOU WIN!",
                   80, FontStyle.Bold, new Color(1f, 0.85f, 0.1f),
                   new Vector2(0.05f, 0.78f), new Vector2(0.95f, 0.96f));
 
-        // Narration panel
-        var panel = EnsurePanel(canvas, "NarrationPanel",
-                                new Color(0, 0, 0, 0.75f),
-                                new Vector2(0.05f, 0.38f), new Vector2(0.95f, 0.75f));
+        var panel = EnsureNarrationOverlay(canvas);
         panel.SetActive(false);
 
-        EnsureTMP(panel, "SpeakerText", "Narrator",
-                  26, FontStyle.Bold, new Color(1f, 0.85f, 0.2f),
-                  new Vector2(0, 0.75f), new Vector2(1, 1f));
-
-        EnsureTMP(panel, "NarrationText", "",
-                  24, FontStyle.Normal, Color.white,
-                  new Vector2(0.02f, 0.05f), new Vector2(0.98f, 0.75f));
-
-        EnsureButton(panel, "NextButton", "NEXT ▶",
-                     new Vector2(0.7f, 0f), new Vector2(1f, 0.22f),
-                     new Color(0.2f, 0.7f, 0.3f));
+        var narrationTmp = EnsureTMP(panel, "NarrationText", "",
+                  30, FontStyle.Normal, new Color(0.12f, 0.12f, 0.12f),
+                  NarrationTextMin, NarrationTextMax);
+        narrationTmp.alignment = TextAlignmentOptions.Center;
+        narrationTmp.verticalAlignment = VerticalAlignmentOptions.Middle;
 
         var playAgain = EnsureButton(canvas, "PlayAgainButton", "PLAY AGAIN",
                                      new Vector2(0.1f, 0.08f), new Vector2(0.45f, 0.22f),
@@ -236,15 +187,18 @@ public class SetupNarrationScenes
         var nm = canvas.GetComponent<NarrationManager>() ?? canvas.AddComponent<NarrationManager>();
         nm.narrationPanel = panel;
         nm.narrationText  = panel.transform.Find("NarrationText")?.GetComponent<TextMeshProUGUI>();
-        nm.speakerText    = panel.transform.Find("SpeakerText")?.GetComponent<TextMeshProUGUI>();
-        nm.autoAdvance    = false;
+        nm.speakerText    = null;
+        nm.autoAdvance    = true;
+        nm.autoDelay      = 2.5f;
+        nm.charDelay      = 0.035f;
+        nm.advanceButton  = panel.transform.Find("NextButton")?.GetComponent<Button>();
 
         // Wire VictoryHUD
         var hud = canvas.GetComponent<VictoryHUD>() ?? canvas.AddComponent<VictoryHUD>();
         hud.titleText      = canvas.transform.Find("TitleText")?.GetComponent<TextMeshProUGUI>();
         hud.playAgainButton = playAgain.GetComponent<Button>();
         hud.mainMenuButton  = menu.GetComponent<Button>();
-        hud.nextButton      = panel.transform.Find("NextButton")?.GetComponent<Button>();
+        hud.nextButton      = nm.advanceButton;
 
         EditorUtility.SetDirty(canvas);
     }
@@ -264,28 +218,24 @@ public class SetupNarrationScenes
 
         EnsureFader(canvasObj);
 
-        // Small narration panel — bottom third of screen
-        var panel = EnsurePanel(canvasObj, "NarrationPanel",
-                                new Color(0, 0, 0, 0.8f),
-                                new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.3f));
+        var panel = EnsureNarrationOverlay(canvasObj);
         panel.SetActive(false);
 
-        EnsureTMP(panel, "SpeakerText", "Narrator",
-                  22, FontStyle.Bold, new Color(1f, 0.85f, 0.2f),
-                  new Vector2(0, 0.7f), new Vector2(1, 1f));
-
-        EnsureTMP(panel, "NarrationText", "",
-                  20, FontStyle.Normal, Color.white,
-                  new Vector2(0.02f, 0.05f), new Vector2(0.98f, 0.7f));
+        var narrationTmp = EnsureTMP(panel, "NarrationText", "",
+                  30, FontStyle.Normal, new Color(0.12f, 0.12f, 0.12f),
+                  NarrationTextMin, NarrationTextMax);
+        narrationTmp.alignment = TextAlignmentOptions.Center;
+        narrationTmp.verticalAlignment = VerticalAlignmentOptions.Middle;
 
         // Wire NarrationManager on Canvas
         var nm = canvasObj.GetComponent<NarrationManager>() ?? canvasObj.AddComponent<NarrationManager>();
         nm.narrationPanel = panel;
         nm.narrationText  = panel.transform.Find("NarrationText")?.GetComponent<TextMeshProUGUI>();
-        nm.speakerText    = panel.transform.Find("SpeakerText")?.GetComponent<TextMeshProUGUI>();
+        nm.speakerText    = null;
         nm.autoAdvance    = true;
         nm.autoDelay      = 2.5f;
-        nm.charDelay      = 0.025f;
+        nm.charDelay      = 0.035f;
+        nm.advanceButton  = panel.transform.Find("NextButton")?.GetComponent<Button>();
 
         EditorUtility.SetDirty(canvasObj);
     }
@@ -293,6 +243,42 @@ public class SetupNarrationScenes
     // ═════════════════════════════════════════════════════════════════════════
     // Utility builders
     // ═════════════════════════════════════════════════════════════════════════
+
+    private static GameObject EnsureNarrationOverlay(GameObject canvas)
+    {
+        var existing = canvas.transform.Find("NarrationPanel");
+        GameObject panel;
+
+        if (existing != null)
+        {
+            panel = existing.gameObject;
+            var oldImg = panel.GetComponent<Image>();
+            if (oldImg != null)
+            {
+                oldImg.color = Color.white;
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(BG_PATH);
+                if (sprite != null)
+                {
+                    oldImg.sprite = sprite;
+                    oldImg.type = Image.Type.Simple;
+                }
+            }
+        }
+        else
+        {
+            panel = EnsureImage(canvas, "NarrationPanel", BG_PATH,
+                                Color.white, Vector2.zero, Vector2.one);
+        }
+
+        SetAnchors(panel, Vector2.zero, Vector2.one);
+
+        var speaker = panel.transform.Find("SpeakerText");
+        if (speaker != null) speaker.gameObject.SetActive(false);
+
+        SetupNarrationBackground.EnsureNarrationNextButton(panel.transform);
+
+        return panel;
+    }
 
     private static GameObject EnsureCanvas(string name)
     {
@@ -319,8 +305,8 @@ public class SetupNarrationScenes
         {
             var es = new GameObject("EventSystem");
             es.AddComponent<EventSystem>();
-            es.AddComponent<StandaloneInputModule>();
         }
+        UIInputFix.EnsureEventSystem();
     }
 
     private static void EnsureFader(GameObject canvas)
@@ -358,8 +344,8 @@ public class SetupNarrationScenes
         var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
         if (sprite != null)
         {
-            img.sprite   = sprite;
-            img.type     = Image.Type.Sliced;
+            img.sprite = sprite;
+            img.type   = Image.Type.Simple;
         }
 
         SetAnchors(go, anchorMin, anchorMax);

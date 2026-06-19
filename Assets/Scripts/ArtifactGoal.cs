@@ -1,26 +1,19 @@
 using UnityEngine;
 
+/// <summary>
+/// Collectible artifact.  Handled exclusively by PickupBase via PickupTriggerProxy
+/// so that collection → victory runs through a single code path.
+///
+/// ArtifactGoal now acts as a plain marker component; the actual pickup logic lives
+/// in PickupBase.OnTriggerEnter (tag "Artifact") which already calls
+/// CollectArtifact → TryTriggerVictory → GameManager.TriggerVictory.
+///
+/// The class is kept to avoid missing-script errors on existing prefabs.
+/// </summary>
 public class ArtifactGoal : MonoBehaviour
 {
-    [Tooltip("Rotate the artifact for visual flair")]
-    public float rotationSpeed = 60f;
-
-    private bool _triggered = false;
-
-    private void Update()
-    {
-        transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (_triggered || !other.CompareTag("Player")) return;
-
-        PickupBase pickup = other.GetComponent<PickupBase>();
-        if (pickup == null || pickup.artifactAmount < PickupBase.ArtifactsToWin)
-            return;
-
-        _triggered = true;
-        pickup.TryTriggerVictory();
-    }
+    // No OnTriggerEnter — PickupBase (via PickupTriggerProxy) is the sole authority
+    // for artifact collection and victory detection.  Removing the duplicate handler
+    // prevents the double "Player collected N artifacts" log and the redundant
+    // TryTriggerVictory call that occurred every time the 2nd artifact was grabbed.
 }

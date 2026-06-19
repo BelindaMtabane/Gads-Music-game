@@ -13,6 +13,7 @@ TagManager:
   - SlowDown
   - Speed
   - Victory&Death
+  - Curtain
   layers:
   - Default
   - TransparentFX

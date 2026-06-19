@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 
 public class PianoPuzzle : MonoBehaviour
@@ -33,15 +34,22 @@ public class PianoPuzzle : MonoBehaviour
     private List<KeyCode> input = new List<KeyCode>();
     private int index = 0;
 
+    private void Awake()
+    {
+        ApplyPuzzleLayout();
+    }
+
     void Start()
     {
-        // Start initial 20 second delay
         waitingForRound = true;
         roundDelayTimer = 0f;
     }
 
     void Update()
     {
+        if (!GameManager.GameStarted)
+            return;
+
         HandleRoundDelay();
         HandleTimer();
 
@@ -54,7 +62,6 @@ public class PianoPuzzle : MonoBehaviour
         CheckInput(KeyCode.O);
     }
 
-    // ---------------- START ROUND ----------------
     public void StartRound()
     {
         pattern.Clear();
@@ -67,33 +74,26 @@ public class PianoPuzzle : MonoBehaviour
         waitingForRound = false;
 
         resultText.text = "";
-        inputText.text = "";
+        inputText.text = "You: ";
 
-        for (int i = 0; i < count; i++) // or change difficulty later
-        {
+        for (int i = 0; i < count; i++)
             pattern.Add(keys[Random.Range(0, keys.Length)]);
-        }
 
         ShowPattern();
     }
 
     void ShowPattern()
     {
-        patternText.text = "";
-
-        foreach (var k in pattern)
-        {
-            patternText.text += k + " ";
-        }
+        if (patternText == null) return;
+        patternText.text = "Pattern:\n" + FormatKeySequence(pattern);
     }
 
-    // ---------------- INPUT ----------------
     void CheckInput(KeyCode key)
     {
         if (!Input.GetKeyDown(key)) return;
 
         input.Add(key);
-        inputText.text += key + " ";
+        inputText.text = "You: " + FormatKeySequence(input);
 
         if (key != pattern[index])
         {
@@ -104,27 +104,20 @@ public class PianoPuzzle : MonoBehaviour
         index++;
 
         if (index >= pattern.Count)
-        {
             WinRound();
-        }
     }
 
-    // ---------------- TIMER ----------------
     void HandleTimer()
     {
         if (!roundActive) return;
 
         timer += Time.deltaTime;
-
-        timerText.text = "Time: " + (timeLimit - timer).ToString("F2");
+        timerText.text = "Time: " + Mathf.Max(0f, timeLimit - timer).ToString("F1");
 
         if (timer >= timeLimit)
-        {
             FailRound("TIME UP!");
-        }
     }
 
-    // ---------------- WIN ----------------
     void WinRound()
     {
         resultText.text = "DOOR OPENED!";
@@ -137,13 +130,12 @@ public class PianoPuzzle : MonoBehaviour
         roundDelayTimer = 0f;
     }
 
-    // ---------------- FAIL ----------------
     void FailRound(string message)
     {
         resultText.text = message;
         roundActive = false;
+        ShowPattern();
 
-        // fail = shorter delay OR instant retry delay
         Invoke(nameof(StartFailDelay), 2f);
     }
 
@@ -151,9 +143,10 @@ public class PianoPuzzle : MonoBehaviour
     {
         waitingForRound = true;
         roundDelayTimer = 0f;
+        resultText.text = "";
+        inputText.text = "You: ";
     }
 
-    // ---------------- DOORS ----------------
     void OpenNextDoor()
     {
         if (doorIndex >= doors.Length) return;
@@ -162,14 +155,12 @@ public class PianoPuzzle : MonoBehaviour
         doorIndex++;
     }
 
-    // ---------------- DELAY SYSTEM ----------------
     void HandleRoundDelay()
     {
         if (!waitingForRound) return;
 
         roundDelayTimer += Time.deltaTime;
-
-        timerText.text = "Starting in: " + Mathf.Max(0, 10f - roundDelayTimer).ToString("F1");
+        timerText.text = "Next round: " + Mathf.Max(0f, 10f - roundDelayTimer).ToString("F1");
 
         if (roundDelayTimer >= 10f)
         {
@@ -177,5 +168,55 @@ public class PianoPuzzle : MonoBehaviour
             roundDelayTimer = 0f;
             StartRound();
         }
+    }
+
+    private static string FormatKeySequence(IReadOnlyList<KeyCode> sequence)
+    {
+        if (sequence == null || sequence.Count == 0)
+            return "—";
+
+        var sb = new StringBuilder();
+        for (int i = 0; i < sequence.Count; i++)
+        {
+            if (i > 0)
+                sb.Append("   ·   ");
+            sb.Append(KeyLabel(sequence[i]));
+        }
+
+        return sb.ToString();
+    }
+
+    private static string KeyLabel(KeyCode key)
+    {
+        string label = key.ToString();
+        return label.Length == 1 ? label : label;
+    }
+
+    private void ApplyPuzzleLayout()
+    {
+        StyleField(patternText, new Vector2(0.03f, 0.76f), new Vector2(0.44f, 0.92f), 34);
+        StyleField(inputText, new Vector2(0.03f, 0.60f), new Vector2(0.44f, 0.74f), 30);
+        StyleField(resultText, new Vector2(0.03f, 0.46f), new Vector2(0.44f, 0.58f), 28);
+        StyleField(timerText, new Vector2(0.03f, 0.34f), new Vector2(0.44f, 0.44f), 26);
+    }
+
+    private static void StyleField(TMP_Text field, Vector2 anchorMin, Vector2 anchorMax, int fontSize)
+    {
+        if (field == null) return;
+
+        var rt = field.rectTransform;
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        rt.localScale = Vector3.one;
+
+        field.fontSize = fontSize;
+        field.fontStyle = FontStyles.Bold;
+        field.alignment = TextAlignmentOptions.TopLeft;
+        field.enableWordWrapping = true;
+        field.overflowMode = TextOverflowModes.Overflow;
+        field.raycastTarget = false;
+        field.color = Color.white;
     }
 }

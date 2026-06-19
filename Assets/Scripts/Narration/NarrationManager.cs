@@ -55,6 +55,7 @@ public class NarrationManager : MonoBehaviour
     private NarrationLine[] _lines;
     private int              _index;
     private Coroutine        _typeRoutine;
+    private Coroutine        _subtitleHideRoutine;
     private bool             _lineComplete;
     private UnityAction      _onAllDone;
 
@@ -67,7 +68,71 @@ public class NarrationManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
+        EnsureParentCanvasScale();
         if (narrationPanel != null) narrationPanel.SetActive(false);
+        EnsureAllFonts();
+    }
+
+    void EnsureAllFonts()
+    {
+        TmpUiUtility.EnsureFont(narrationText);
+        TmpUiUtility.EnsureFont(speakerText);
+    }
+
+    /// <summary>Non-blocking subtitle during gameplay — no typewriter, auto-hides.</summary>
+    public void ShowGameplaySubtitle(string text, string speaker, float duration = 2.2f)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        if (_typeRoutine != null)
+        {
+            StopCoroutine(_typeRoutine);
+            _typeRoutine = null;
+        }
+
+        if (_subtitleHideRoutine != null)
+        {
+            StopCoroutine(_subtitleHideRoutine);
+            _subtitleHideRoutine = null;
+        }
+
+        _lines = null;
+        _onAllDone = null;
+
+        EnsureParentCanvasScale();
+        EnsureAllFonts();
+        UIInputFix.EnsureEventSystem();
+
+        if (narrationPanel != null)
+        {
+            narrationPanel.SetActive(true);
+            narrationPanel.transform.SetAsLastSibling();
+
+            var panelImage = narrationPanel.GetComponent<Image>();
+            if (panelImage != null)
+                panelImage.raycastTarget = false;
+        }
+
+        if (advanceButton != null)
+            advanceButton.gameObject.SetActive(false);
+
+        if (speakerText != null)
+        {
+            TmpUiUtility.SetSafeText(speakerText, speaker);
+            speakerText.gameObject.SetActive(!string.IsNullOrEmpty(speaker));
+        }
+
+        TmpUiUtility.SetSafeText(narrationText, text);
+
+        _subtitleHideRoutine = StartCoroutine(HideSubtitleAfter(duration));
+    }
+
+    IEnumerator HideSubtitleAfter(float duration)
+    {
+        yield return new WaitForSecondsRealtime(duration);
+        if (narrationPanel != null)
+            narrationPanel.SetActive(false);
+        _subtitleHideRoutine = null;
     }
 
     private void Update()
@@ -95,7 +160,12 @@ public class NarrationManager : MonoBehaviour
         _index     = 0;
         _onAllDone = onComplete;
 
-        BindAdvanceButton();
+        UIInputFix.EnsureEventSystem();
+        UICursor.UnlockForMenu();
+        EnsureParentCanvasScale();
+        EnsureAllFonts();
+
+        advanceButton = GetAdvanceButton(advanceButton);
 
         if (narrationPanel != null)
         {
@@ -109,8 +179,9 @@ public class NarrationManager : MonoBehaviour
             UIButtonRaycastFix.DisableTextRaycasts(narrationPanel);
         }
 
-        if (advanceButton != null)
-            advanceButton.transform.SetAsLastSibling();
+        BindAdvanceButton();
+
+        PrepareNarrationText();
 
         ShowLine(_index);
     }
@@ -135,11 +206,21 @@ public class NarrationManager : MonoBehaviour
             yield return null;
     }
 
-    /// <summary>Wait until SceneFader finishes fading in (safe to call when no fader exists).</summary>
+      /// <summary>Wait until SceneFader finishes fading in (safe to call when no fader exists).</summary>
     public static System.Collections.IEnumerator WaitForSceneFade()
     {
-        while (SceneFader.Instance != null && SceneFader.Instance.IsBlocking)
+        float waited = 0f;
+        const float maxWait = 2.5f;
+
+        while (SceneFader.Instance != null && SceneFader.Instance.IsBlocking && waited < maxWait)
+        {
+            waited += Time.unscaledDeltaTime;
             yield return null;
+        }
+
+        if (SceneFader.Instance != null && SceneFader.Instance.IsBlocking)
+            SceneFader.ForceClearFade();
+
         yield return null;
     }
 
@@ -147,12 +228,94 @@ public class NarrationManager : MonoBehaviour
     {
         if (advanceButton == null) return;
 
-        UIButtonRaycastFix.Apply(advanceButton);
-        UIButtonRaycastFix.BringToFront(advanceButton);
+        EnsureParentCanvasScale();
+        StyleAdvanceButton(advanceButton);
+
+        if (narrationPanel != null)
+        {
+            advanceButton.transform.SetParent(narrationPanel.transform, false);
+            var rt = advanceButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = new Vector2(0.70f, 0.04f);
+                rt.anchorMax = new Vector2(0.94f, 0.18f);
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                rt.localScale = Vector3.one;
+            }
+        }
+
+        advanceButton.transform.SetAsLastSibling();
+
         advanceButton.interactable = true;
         advanceButton.onClick.RemoveListener(Advance);
         advanceButton.onClick.AddListener(Advance);
         advanceButton.gameObject.SetActive(true);
+
+        if (advanceButton.GetComponent<NarrationAdvanceButton>() == null)
+            advanceButton.gameObject.AddComponent<NarrationAdvanceButton>();
+    }
+
+    private static void StyleAdvanceButton(Button btn)
+    {
+        UIButtonRaycastFix.Apply(btn);
+
+        var img = btn.GetComponent<Image>();
+        if (img == null) return;
+
+        img.sprite = null;
+        img.type = Image.Type.Simple;
+        img.color = new Color(0.96f, 0.92f, 0.86f, 1f);
+        img.raycastTarget = true;
+        btn.targetGraphic = img;
+
+        var colors = btn.colors;
+        colors.normalColor      = Color.white;
+        colors.highlightedColor = new Color(1f, 0.98f, 0.94f, 1f);
+        colors.pressedColor     = new Color(0.88f, 0.82f, 0.74f, 1f);
+        colors.selectedColor    = Color.white;
+        btn.colors = colors;
+
+        var label = btn.GetComponentInChildren<TextMeshProUGUI>();
+        if (label != null)
+        {
+            TmpUiUtility.EnsureFont(label);
+            label.text = "NEXT";
+            label.fontSize = 28;
+            label.fontStyle = FontStyles.Bold;
+            label.color = new Color(0.25f, 0.18f, 0.12f, 1f);
+            label.alignment = TextAlignmentOptions.Center;
+            label.raycastTarget = false;
+        }
+    }
+
+    private void EnsureParentCanvasScale()
+    {
+        var canvasRt = narrationPanel != null
+            ? narrationPanel.GetComponentInParent<Canvas>()?.GetComponent<RectTransform>()
+            : GetComponent<RectTransform>();
+        if (canvasRt != null)
+            canvasRt.localScale = Vector3.one;
+    }
+
+    private void PrepareNarrationText()
+    {
+        if (narrationText == null) return;
+
+        TmpUiUtility.EnsureFont(narrationText);
+        narrationText.gameObject.SetActive(true);
+        narrationText.fontSize = 30;
+        narrationText.color = new Color(0.12f, 0.12f, 0.12f, 1f);
+        narrationText.alignment = TextAlignmentOptions.Center;
+        narrationText.verticalAlignment = VerticalAlignmentOptions.Middle;
+        narrationText.textWrappingMode = TextWrappingModes.Normal;
+        narrationText.raycastTarget = false;
+        if (TmpUiUtility.IsReady(narrationText))
+            narrationText.ForceMeshUpdate(true);
+    }
+
+    private void RefreshNarrationText(string value)
+    {
+        TmpUiUtility.SetSafeText(narrationText, value);
     }
 
     /// <summary>
@@ -166,15 +329,16 @@ public class NarrationManager : MonoBehaviour
 
         if (!_lineComplete)
         {
-            // Snap — stop typewriter and show full text immediately
             if (_typeRoutine != null) StopCoroutine(_typeRoutine);
-            if (narrationText != null) narrationText.text = _lines[_index].text;
+            RefreshNarrationText(_lines[_index].text);
             _lineComplete = true;
-
-            if (!autoAdvance) return;   // wait for next Advance() call
+            if (!autoAdvance) return;
+        }
+        else if (_typeRoutine != null)
+        {
+            StopCoroutine(_typeRoutine);
         }
 
-        // Move to next line
         _index++;
         if (_index < _lines.Length)
         {
@@ -190,6 +354,9 @@ public class NarrationManager : MonoBehaviour
     public void Cancel()
     {
         if (_typeRoutine != null) StopCoroutine(_typeRoutine);
+        if (_subtitleHideRoutine != null) StopCoroutine(_subtitleHideRoutine);
+        _typeRoutine = null;
+        _subtitleHideRoutine = null;
         _lines = null;
         if (narrationPanel != null) narrationPanel.SetActive(false);
     }
@@ -202,11 +369,11 @@ public class NarrationManager : MonoBehaviour
 
         if (speakerText != null)
         {
-            speakerText.text = line.speaker;
+            TmpUiUtility.SetSafeText(speakerText, line.speaker);
             speakerText.gameObject.SetActive(!string.IsNullOrEmpty(line.speaker));
         }
 
-        if (narrationText != null) narrationText.text = "";
+        RefreshNarrationText("");
 
         // Voice clip
         if (voiceSource != null && line.voiceClip != null)
@@ -222,21 +389,24 @@ public class NarrationManager : MonoBehaviour
 
     private IEnumerator TypeLine(string fullText)
     {
+        int lineIdx = _index;
+
         for (int i = 0; i <= fullText.Length; i++)
         {
-            if (narrationText != null)
-                narrationText.text = fullText.Substring(0, i);
+            RefreshNarrationText(fullText.Substring(0, i));
             yield return new WaitForSecondsRealtime(charDelay);
         }
 
         _lineComplete = true;
 
-        if (autoAdvance)
-            yield return new WaitForSecondsRealtime(autoDelay);
-        else
-            yield break;   // manual advance — wait for Advance() call
+        if (!autoAdvance)
+            yield break;
 
-        // Auto advance
+        yield return new WaitForSecondsRealtime(autoDelay);
+
+        if (_lines == null || _index != lineIdx)
+            yield break;
+
         _index++;
         if (_index < _lines.Length)
             ShowLine(_index);
@@ -244,8 +414,65 @@ public class NarrationManager : MonoBehaviour
             Finish();
     }
 
+    public Button GetAdvanceButton(Button overrideBtn = null)
+    {
+        if (overrideBtn != null)
+        {
+            advanceButton = overrideBtn;
+            return overrideBtn;
+        }
+
+        if (advanceButton != null) return advanceButton;
+        if (narrationPanel == null) return null;
+
+        var found = narrationPanel.transform.Find("NextButton")?.GetComponent<Button>();
+        if (found != null)
+        {
+            advanceButton = found;
+            return found;
+        }
+
+        advanceButton = CreateRuntimeNextButton();
+        return advanceButton;
+    }
+
+    private Button CreateRuntimeNextButton()
+    {
+        if (narrationPanel == null) return null;
+
+        var go = new GameObject("NextButton");
+        go.transform.SetParent(narrationPanel.transform, false);
+
+        var rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.70f, 0.04f);
+        rt.anchorMax = new Vector2(0.94f, 0.18f);
+        rt.offsetMin = rt.offsetMax = Vector2.zero;
+
+        go.AddComponent<Image>();
+        var btn = go.AddComponent<Button>();
+
+        var labelGo = new GameObject("Label");
+        labelGo.transform.SetParent(go.transform, false);
+        var lrt = labelGo.AddComponent<RectTransform>();
+        lrt.anchorMin = Vector2.zero;
+        lrt.anchorMax = Vector2.one;
+        lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+        labelGo.AddComponent<TextMeshProUGUI>();
+        TmpUiUtility.EnsureFont(labelGo.GetComponent<TextMeshProUGUI>());
+
+        StyleAdvanceButton(btn);
+        go.SetActive(false);
+        return btn;
+    }
+
     private void Finish()
     {
+        if (_subtitleHideRoutine != null)
+        {
+            StopCoroutine(_subtitleHideRoutine);
+            _subtitleHideRoutine = null;
+        }
+
         _lines = null;
         if (narrationPanel != null) narrationPanel.SetActive(false);
         if (advanceButton != null) advanceButton.gameObject.SetActive(false);

@@ -19,10 +19,18 @@ public class PlayerAnimationController : MonoBehaviour
     private PickupBase     pickup;
 
     [Tooltip("Y position below which the player is considered to have fallen to death")]
-    public float fallDeathY = -5f;
+    public float fallDeathY = -4f;
+
+    [Tooltip("Seconds without ground support before a void fall counts as death")]
+    public float voidFallDeathDelay = 1.2f;
 
     private float smoothedSpeed = 0f;
     private bool  wasDead       = false;
+    private float _voidFallTimer;
+
+    private static readonly int SpeedHash  = Animator.StringToHash("Speed");
+    private static readonly int JumpHash   = Animator.StringToHash("Jump");
+    private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
 
     private void Awake()
     {
@@ -30,55 +38,91 @@ public class PlayerAnimationController : MonoBehaviour
         pickup   = GetComponent<PickupBase>();
 
         if (characterAnimator == null)
-            characterAnimator = GetComponentInChildren<Animator>();
-
-        // Force the animator into Idle from the very first frame.
-        // Without this, there is a 1-frame window where the animator
-        // is in an undefined state, which can appear as a T-pose flash.
-        if (characterAnimator != null)
         {
-            characterAnimator.SetFloat("Speed", 0f);
-            characterAnimator.Play("Idle", 0, 0f);
+            Transform ch03 = transform.Find("Ch03_nonPBR");
+            characterAnimator = ch03 != null
+                ? ch03.GetComponent<Animator>()
+                : GetComponentInChildren<Animator>();
         }
+
+        if (characterAnimator != null)
+            characterAnimator.applyRootMotion = false;
     }
 
     private void Update()
     {
         if (characterAnimator == null) return;
 
-        bool isDead = pickup != null && (pickup.currentHealth <= 0 || pickup.hitCounter <= 0);
+        if (!GameManager.GameStarted)
+        {
+            if (!GameManager.IsGameOver)
+            {
+                characterAnimator.SetBool(IsDeadHash, false);
+                characterAnimator.SetFloat(SpeedHash, 0f);
+                smoothedSpeed = 0f;
+                wasDead = false;
+                _voidFallTimer = 0f;
+            }
+            return;
+        }
 
-        // ── Speed ─────────────────────────────────────────────────────────
-        // Use forwardSpeed as the authoritative value instead of cc.velocity,
-        // which can briefly read zero when the character controller hits any
-        // collider (including slow-down obstacles).
+        bool isDead = pickup != null && pickup.currentHealth <= 0;
+
+        if (!isDead)
+            isDead = CheckVoidFall();
+
         float target = 0f;
         if (!isDead && movement != null && movement.enabled)
-            target = movement.forwardSpeed;   // 10 normally, ~6 when slowed — always > 0.1
+            target = Mathf.Max(movement.forwardSpeed, 1f);
 
         smoothedSpeed = Mathf.MoveTowards(smoothedSpeed, target, Time.deltaTime / speedDampTime);
-        characterAnimator.SetFloat("Speed", smoothedSpeed);
+        characterAnimator.SetFloat(SpeedHash, smoothedSpeed);
 
         if (!isDead && movement != null && movement.DidJumpThisFrame)
-            characterAnimator.SetTrigger("Jump");
+            characterAnimator.SetTrigger(JumpHash);
 
-        // ── Dead ──────────────────────────────────────────────────────────
-        characterAnimator.SetBool("IsDead", isDead);
+        characterAnimator.SetBool(IsDeadHash, isDead);
 
-        // ── Fall-death: player dropped below the world ────────────────────
-        // Catches both "fell off the edge" and "clipped through the floor"
-        if (!isDead && transform.position.y < fallDeathY)
-        {
-            // Force health to zero so IsDead becomes true next frame
-            if (pickup != null) pickup.currentHealth = 0;
-            isDead = true;
-        }
-
-        // Notify GameManager the first time the player dies
         if (isDead && !wasDead)
-        {
-            GameManager.Instance?.TriggerGameOver();
-        }
+            TriggerDefeat();
+
         wasDead = isDead;
+    }
+
+    bool CheckVoidFall()
+    {
+        if (transform.position.y < fallDeathY)
+        {
+            RunStats.SetDeathCause(DeathCause.Fall);
+            return true;
+        }
+
+        int groundMask = movement != null && movement.Ground.value != 0
+            ? movement.Ground.value
+            : LayerMask.GetMask("Ground");
+
+        Vector3 origin = transform.position + Vector3.up * 2f;
+        bool hasGround = Physics.Raycast(origin, Vector3.down, 12f, groundMask, QueryTriggerInteraction.Ignore);
+
+        if (hasGround || transform.position.y > 3f)
+        {
+            _voidFallTimer = 0f;
+            return false;
+        }
+
+        _voidFallTimer += Time.deltaTime;
+        if (_voidFallTimer < voidFallDeathDelay)
+            return false;
+
+        RunStats.SetDeathCause(DeathCause.Fall);
+        return true;
+    }
+
+    void TriggerDefeat()
+    {
+        if (pickup != null && pickup.currentHealth > 0)
+            pickup.KillPlayer(RunStats.LastDeathCause);
+        else if (GameManager.Instance != null)
+            GameManager.Instance.TriggerGameOver();
     }
 }

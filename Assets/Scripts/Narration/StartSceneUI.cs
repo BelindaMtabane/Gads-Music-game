@@ -4,44 +4,87 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Drives the Start / Intro scene.
+/// Drives the Start scene.
 /// Flow:
-///   1. Scene fades in → narrative audio starts + typewriter narration plays
-///   2. Player clicks NEXT to advance each line (audio keeps playing)
-///   3. After all lines → audio fades out, PLAY button appears
-///   4. PLAY → fades to MainGameL1
+///   1. Splash → StartScene fades in → narrative intro (auto typewriter)
+///   2. After narration → main menu (Play, Pause, Settings)
+///   3. PLAY → MainGameL1 countdown (no narrator between menu and countdown)
 /// </summary>
 public class StartSceneUI : MonoBehaviour
 {
+    /// <summary>Set before loading StartScene to skip intro narration and open the main menu.</summary>
+    public static bool OpenDirectlyToMenu;
+
     [Header("Scene to load")]
     public string gameSceneName = "MainGameL1";
 
-    [Header("Buttons")]
+    [Header("Menu")]
+    public GameObject menuPanel;
     public Button playButton;
-    public Button nextButton;
+    public Button narrativeButton;   // NEW — opens the story narration from the menu
+    public Button pauseButton;
+    public Button settingsButton;
 
-    [Header("Narration lines (edit text in Inspector)")]
+    [Header("Overlays")]
+    public GameObject pausePanel;
+    public GameObject settingsPanel;
+    public Button pauseResumeButton;
+    public Button settingsCloseButton;
+
+    [Header("Settings")]
+    public Slider musicVolumeSlider;
+    public Slider sfxVolumeSlider;
+
+    [Header("Legacy (editor wiring)")]
+    public Button nextButton;
+    public PauseMenuHUD pauseMenuHud;
+
+    [Header("Narration lines")]
     [TextArea(2, 5)]
     public string[] narrationLines = new string[]
     {
-        "Welcome to Rhythm Raiders!",
-        "You are a musician on the run. Collect all the instruments before the security guard catches you!",
-        "Use the arrow keys or WASD to move, and Space to jump.",
-        "Avoid obstacles, collect power-ups, and reach the goal. Good luck!"
+        "Welcome to Rhythm Raiders: Beat Horizon!",
+        "You are Pulse — a rhythm thief infiltrating venues controlled by the Conductors.",
+        "Steal two musical artifacts per level. Outrun the guard. Restore the city's beat.",
+        "Level 1: The Opera House. Level 2: The Music Museum. Level 3: The Underground Club. Good luck!"
     };
 
-    public string speakerName = "Narrator";
+    public string speakerName = "";
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    private bool _menuPaused;
+
     private void Start()
     {
         UICursor.UnlockForMenu();
         Time.timeScale = 1f;
+        AudioListener.pause = false;
 
-        if (playButton != null) playButton.gameObject.SetActive(false);
+        EnsureCanvasLayout();
+        UIInputFix.EnsureEventSystem();
+        if (pauseMenuHud == null) pauseMenuHud = GetComponent<PauseMenuHUD>();
 
-        if (playButton != null)
-            UIButtonRaycastFix.Apply(playButton);
+        if (menuPanel != null) menuPanel.SetActive(false);
+        if (pausePanel != null) pausePanel.SetActive(false);
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+
+        WireButton(playButton,     OnPlay);
+        WireButton(narrativeButton, OnNarrative);
+        WireButton(pauseButton,    OnPause);
+        WireButton(settingsButton, OnSettings);
+        WireButton(pauseResumeButton,    OnResume);
+        WireButton(settingsCloseButton,  OnCloseSettings);
+
+        if (musicVolumeSlider != null && AudioManager.Instance != null)
+        {
+            musicVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.musicVolume);
+            musicVolumeSlider.onValueChanged.AddListener(v => AudioManager.Instance.SetMusicVolume(v));
+        }
+
+        if (sfxVolumeSlider != null && AudioManager.Instance != null)
+        {
+            sfxVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.sfxVolume);
+            sfxVolumeSlider.onValueChanged.AddListener(v => AudioManager.Instance.SetSfxVolume(v));
+        }
 
         StartCoroutine(BeginIntro());
     }
@@ -50,14 +93,26 @@ public class StartSceneUI : MonoBehaviour
     {
         yield return NarrationManager.WaitForSceneFade();
 
-        AudioManager.Instance?.PlayNarrative();
+        // Always go straight to the main menu.
+        // The narrative is accessible via the NARRATIVE button on the menu.
+        OpenDirectlyToMenu = false;
+        NarrationManager.Instance?.Cancel();
+        OnNarrationComplete();
+    }
 
+    /// <summary>NARRATIVE button — plays the story intro, then returns to menu.</summary>
+    public void OnNarrative()
+    {
+        if (menuPanel != null) menuPanel.SetActive(false);
+        AudioManager.Instance?.PlayNarrative();
         var lines = BuildLines();
         if (NarrationManager.Instance != null)
         {
-            NarrationManager.Instance.autoAdvance   = false;
-            NarrationManager.Instance.advanceButton = nextButton;
-            NarrationManager.Instance.Play(lines, OnNarrationComplete);
+            var nm = NarrationManager.Instance;
+            nm.autoAdvance   = true;
+            nm.autoDelay     = 2.5f;
+            nm.advanceButton = nm.GetAdvanceButton(nextButton);
+            nm.Play(lines, OnNarrationComplete);
         }
         else
         {
@@ -65,31 +120,93 @@ public class StartSceneUI : MonoBehaviour
         }
     }
 
-    // ── Button callbacks ──────────────────────────────────────────────────────
-    public void OnNext()
-    {
-        NarrationManager.Instance?.Advance();
-    }
-
     public void OnPlay()
     {
+        LevelProgress.ResetToFirstLevel();
+        if (_menuPaused) OnResume();
         AudioManager.Instance?.StopNarrative();
         SceneFader.LoadScene(gameSceneName);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    public void OnPause()
+    {
+        if (pauseMenuHud != null)
+        {
+            pauseMenuHud.Show();
+            return;
+        }
+
+        _menuPaused = true;
+        Time.timeScale = 0f;
+        AudioListener.pause = true;
+        if (pausePanel != null) pausePanel.SetActive(true);
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+    }
+
+    public void OnResume()
+    {
+        if (pauseMenuHud != null)
+        {
+            pauseMenuHud.Hide();
+            return;
+        }
+
+        _menuPaused = false;
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+        if (pausePanel != null) pausePanel.SetActive(false);
+    }
+
+    public void OnSettings()
+    {
+        UIInputFix.EnsureEventSystem();
+        // Hide the menu panel so buttons don't bleed through behind settings
+        if (menuPanel != null) menuPanel.SetActive(false);
+
+        if (pauseMenuHud != null && settingsPanel != null)
+        {
+            settingsPanel.SetActive(true);
+            settingsPanel.transform.SetAsLastSibling();
+            return;
+        }
+
+        if (pausePanel != null) pausePanel.SetActive(false);
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(true);
+            settingsPanel.transform.SetAsLastSibling();
+        }
+    }
+
+    public void OnCloseSettings()
+    {
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        // Restore the menu panel after closing settings
+        if (menuPanel != null) menuPanel.SetActive(true);
+
+        if (pauseMenuHud != null)
+            pauseMenuHud.OnCloseSettings();
+    }
+
     private void OnNarrationComplete()
     {
-        // Stop narrative audio when all lines are done
         AudioManager.Instance?.StopNarrative();
+        if (menuPanel != null) menuPanel.SetActive(true);
+    }
 
-        if (nextButton != null) nextButton.gameObject.SetActive(false);
-        if (playButton != null)
-        {
-            playButton.gameObject.SetActive(true);
-            playButton.onClick.RemoveAllListeners();
-            playButton.onClick.AddListener(OnPlay);
-        }
+    private void EnsureCanvasLayout()
+    {
+        var rt = GetComponent<RectTransform>();
+        if (rt != null)
+            rt.localScale = Vector3.one;
+    }
+
+    private static void WireButton(Button btn, UnityEngine.Events.UnityAction action)
+    {
+        if (btn == null || action == null) return;
+        UIButtonRaycastFix.Apply(btn);
+        btn.onClick.RemoveAllListeners();
+        btn.onClick.AddListener(action);
     }
 
     private NarrationLine[] BuildLines()

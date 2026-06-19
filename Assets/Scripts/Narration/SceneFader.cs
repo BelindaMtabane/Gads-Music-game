@@ -42,19 +42,21 @@ public class SceneFader : MonoBehaviour
         // Because this GO is DontDestroyOnLoad, the canvas and image persist too.
         BuildFadeCanvas();
 
-        // Start fully black — FadeIn will clear it
-        SetAlpha(1f);
-        _fadeImage.raycastTarget = true;
-
         DisableLegacySceneFadeOverlays();
 
-        // Trigger FadeIn on every scene load (including the current one)
+        bool isSplash = SceneManager.GetActiveScene().name == "SplashScene";
+        SetAlpha(isSplash ? 0f : 1f);
+        if (!isSplash)
+            _fadeImage.raycastTarget = true;
+
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void Start()
     {
-        // sceneLoaded is not always invoked for the first scene when pressing Play in the Editor.
+        if (SceneManager.GetActiveScene().name == "SplashScene")
+            return;
+
         BeginFadeIn();
     }
 
@@ -67,7 +69,18 @@ public class SceneFader : MonoBehaviour
     {
         UICursor.ApplyForScene(scene.name);
         Time.timeScale = 1f;
+        UIInputFix.EnsureEventSystem();
         DisableLegacySceneFadeOverlays();
+
+        if (scene.name == "SplashScene")
+        {
+            SetAlpha(0f);
+            return;
+        }
+
+        if (scene.name == "DeathScene" || scene.name == "VictoryScene")
+            GameOverOverlay.Hide();
+
         BeginFadeIn();
     }
 
@@ -164,8 +177,26 @@ public class SceneFader : MonoBehaviour
         _fadeInRoutine = null;
     }
 
+    /// <summary>Clears a stuck black overlay so end-scene UI can show.</summary>
+    public static void ForceClearFade()
+    {
+        if (Instance == null) return;
+        if (Instance._fadeInRoutine != null)
+        {
+            Instance.StopCoroutine(Instance._fadeInRoutine);
+            Instance._fadeInRoutine = null;
+        }
+        Instance.SetAlpha(0f);
+    }
+
     private IEnumerator FadeOutThenLoad(string sceneName, int buildIndex)
     {
+        if (_fadeInRoutine != null)
+        {
+            StopCoroutine(_fadeInRoutine);
+            _fadeInRoutine = null;
+        }
+
         if (_fadeCanvasRoot != null)
             _fadeCanvasRoot.SetActive(true);
 

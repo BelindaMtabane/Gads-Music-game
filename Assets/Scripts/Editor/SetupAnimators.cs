@@ -58,7 +58,7 @@ public class SetupAnimators
         var root = ctrl.layers[0].stateMachine;
 
         // Find clips — all Mixamo .dae clips are named "Take 001" internally
-        AnimationClip idle     = LoadClipFromDae("Assets/Animations/PlayerAnimations/idle/Ch03_nonPBR.dae");
+        AnimationClip idle     = LoadClipFromDae("Assets/Animations/PlayerAnimations/run/Running.dae");
         AnimationClip run      = LoadClipFromDae("Assets/Animations/PlayerAnimations/run/Running.dae");
         AnimationClip jump     = LoadClipFromDae("Assets/Animations/PlayerAnimations/jump/Jump.dae");
         AnimationClip defeated = LoadClipFromDae("Assets/Animations/PlayerAnimations/Defeated/Defeated.dae");
@@ -71,7 +71,7 @@ public class SetupAnimators
         var jumpState  = jump     != null ? root.AddState("Jump",     new Vector3(400,0,0)) : root.AddState("Jump");
         AnimatorState deadState = null;
 
-        if (idle)     idleState.motion  = idle;
+        if (idle)     { idleState.motion = idle; idleState.speed = 0.65f; }
         if (run)      runState.motion   = run;
         if (jump)     jumpState.motion  = jump;
 
@@ -88,10 +88,11 @@ public class SetupAnimators
         t.AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
         t.hasExitTime = false;
 
-        // Run -> Idle (Speed < 0.1)
+        // Run -> Idle disabled during gameplay (same clip caused stutter / T-pose risk)
         t = runState.AddTransition(idleState);
         t.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
         t.hasExitTime = false;
+        t.mute = true;
 
         // Any -> Jump (trigger fires once)
         var jt = ctrl.layers[0].stateMachine.AddAnyStateTransition(jumpState);
@@ -99,10 +100,10 @@ public class SetupAnimators
         jt.hasExitTime = false;
         jt.canTransitionToSelf = false;
 
-        // Jump -> Idle (plays full clip then returns, no condition needed)
-        t = jumpState.AddTransition(idleState);
+        // Jump -> Run (runner is always moving when alive)
+        t = jumpState.AddTransition(runState);
         t.hasExitTime = true;
-        t.exitTime    = 0.9f;   // transition near end of clip
+        t.exitTime    = 0.85f;
         t.duration    = 0.1f;
 
         // Any -> Dead

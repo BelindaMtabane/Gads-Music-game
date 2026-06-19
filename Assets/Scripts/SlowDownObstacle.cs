@@ -10,13 +10,22 @@ public class SlowDownObstacle : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player")) return;
+        if (!PlayerColliderUtility.IsPlayer(other)) return;
+        ApplyToPlayer(PlayerColliderUtility.GetMovement(other));
+    }
 
-        PlayerMovement movement = other.GetComponent<PlayerMovement>();
+    public void ApplyToPlayer(PlayerMovement movement)
+    {
         if (movement == null) return;
 
+        var col = GetComponent<Collider>();
+        if (col != null && !col.enabled) return;
+
+        if (col != null) col.enabled = false;
+        var mr = GetComponent<MeshRenderer>();
+        if (mr != null) mr.enabled = false;
+
         StartCoroutine(ApplySlow(movement));
-        Destroy(gameObject);
     }
 
     private IEnumerator ApplySlow(PlayerMovement movement)
@@ -24,5 +33,6 @@ public class SlowDownObstacle : MonoBehaviour
         movement.forwardSpeed = Mathf.Max(1f, movement.forwardSpeed - slowAmount);
         yield return new WaitForSeconds(duration);
         movement.forwardSpeed += slowAmount;
+        Destroy(gameObject);
     }
 }

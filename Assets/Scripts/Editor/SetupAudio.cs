@@ -16,6 +16,11 @@ public class SetupAudio
     private const string VICTORY    = "Assets/Audios/game_victory_sound.mp3";
     private const string GAMEOVER   = "Assets/Audios/piano_GameOver_Sound.mp3";
     private const string NARRATIVE  = "Assets/Audios/narrative_mp3.mp3";
+    private const string PICKUP_ARTIFACT = "Assets/Audios/Pickups/pickup_artifact.wav";
+    private const string PICKUP_HEALTH   = "Assets/Audios/Pickups/pickup_health.wav";
+    private const string PICKUP_SNEAK    = "Assets/Audios/Pickups/pickup_sneak.wav";
+    private const string PICKUP_SPEED    = "Assets/Audios/Pickups/pickup_speed.wav";
+    private const string PICKUP_JUMP     = "Assets/Audios/Pickups/pickup_jump.wav";
 
     private static readonly string[] Scenes = {
         "Assets/Scenes/StartScene.unity",
@@ -27,6 +32,11 @@ public class SetupAudio
     [MenuItem("Tools/Setup Audio")]
     public static void Setup()
     {
+        if (!System.IO.File.Exists(PICKUP_ARTIFACT))
+            PickupSfxGenerator.GenerateAll();
+
+        FixCountdownImport();
+
         string currentScene = EditorSceneManager.GetActiveScene().path;
 
         foreach (string scenePath in Scenes)
@@ -61,11 +71,17 @@ public class SetupAudio
         }
 
         existing.backgroundMusic = bgClip;
+        existing.backgroundMusicLayer = bgClip;
         existing.buttonSound     = btnClip;
         existing.countdownSound  = cdClip;
         existing.victorySound    = victoryClip;
         existing.gameOverSound   = gameOverClip;
         existing.narrativeSound  = narrativeClip;
+        existing.artifactPickupSound = AssetDatabase.LoadAssetAtPath<AudioClip>(PICKUP_ARTIFACT);
+        existing.healthPickupSound   = AssetDatabase.LoadAssetAtPath<AudioClip>(PICKUP_HEALTH);
+        existing.sneakPickupSound    = AssetDatabase.LoadAssetAtPath<AudioClip>(PICKUP_SNEAK);
+        existing.speedPickupSound    = AssetDatabase.LoadAssetAtPath<AudioClip>(PICKUP_SPEED);
+        existing.jumpPickupSound     = AssetDatabase.LoadAssetAtPath<AudioClip>(PICKUP_JUMP);
         EditorUtility.SetDirty(existing.gameObject);
 
         // ── ButtonSoundPlayer on every Button ─────────────────────────────────
@@ -118,5 +134,19 @@ public class SetupAudio
                 }
             }
         }
+    }
+
+    private static void FixCountdownImport()
+    {
+        var importer = AssetImporter.GetAtPath(COUNTDOWN) as AudioImporter;
+        if (importer == null) return;
+
+        importer.forceToMono = true;
+        var settings = importer.defaultSampleSettings;
+        settings.loadType = AudioClipLoadType.DecompressOnLoad;
+        settings.compressionFormat = AudioCompressionFormat.Vorbis;
+        settings.quality = 1f;
+        importer.defaultSampleSettings = settings;
+        importer.SaveAndReimport();
     }
 }

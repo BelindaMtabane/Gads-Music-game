@@ -1,49 +1,42 @@
 using UnityEngine;
 
+/// <summary>
+/// Collectible instrument artifact.
+/// </summary>
 [RequireComponent(typeof(AudioSource))]
 public class MusicInstrument : MonoBehaviour
 {
-    [Tooltip("The sound to play when the player touches this instrument")]
+    [Header("Pickup")]
+    [Tooltip("Sound to play when collected")]
     public AudioClip instrumentSound;
 
-    [Tooltip("Points awarded for collecting this instrument")]
+    [Tooltip("How many artifacts this counts as")]
     public int artifactValue = 1;
 
-    private AudioSource audioSource;
-    private bool collected = false;
+    [Tooltip("Money value added to the scoreboard")]
+    public int moneyValue = 500;
+
+    private AudioSource _audio;
+    private bool        _collected = false;
 
     private void Awake()
     {
-        audioSource = GetComponent<AudioSource>();
-        audioSource.playOnAwake = false;
+        _audio = GetComponent<AudioSource>();
+        _audio.playOnAwake = false;
         if (instrumentSound != null)
-            audioSource.clip = instrumentSound;
+            _audio.clip = instrumentSound;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (collected || !other.CompareTag("Player")) return;
-        collected = true;
+        if (_collected || !PlayerColliderUtility.IsPlayer(other)) return;
+        _collected = true;
 
-        PickupBase pickup = other.GetComponent<PickupBase>();
+        PickupBase pickup = PlayerColliderUtility.GetPickup(other);
         if (pickup != null)
-        {
-            pickup.artifactAmount += artifactValue;
-            pickup.TryTriggerVictory();
-        }
+            pickup.CollectArtifact(artifactValue, moneyValue);
 
-        Animator anim = GetComponent<Animator>();
-        if (anim != null)
-            anim.SetTrigger("Collected");
-
-        if (instrumentSound != null)
-        {
-            audioSource.Play();
-            Destroy(gameObject, instrumentSound.length);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        AudioManager.Instance?.PlayArtifactPickupSfx();
+        PickupCollectUtility.TryConsume(gameObject);
     }
 }

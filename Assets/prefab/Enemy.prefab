@@ -157,5 +157,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBase
   player: {fileID: 0}
   moveSpeed: 10
-  boostedSpeed: 17
+  boostedSpeed: 13
   speedBoostTime: 20

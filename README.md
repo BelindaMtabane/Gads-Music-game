@@ -59,6 +59,12 @@ Full environment and editor setup: **[setup.md](setup.md)**
 | [high-concept.md](high-concept.md) | Game vision, pillars, and player fantasy |
 | [claude.md](claude.md) | Context for AI assistants working in this repo |
 | [prompt-used.md](prompt-used.md) | User prompts used during AI-assisted development |
+| [report.md](report.md) | Development report — challenges and fixes |
+| **Part 3 (POE)** | |
+| [feedback-summary.md](feedback-summary.md) | Structured external feedback record |
+| [critical-feedback.md](critical-feedback.md) | Critical engagement (400–600 words) |
+| [final-reflection-report.md](final-reflection-report.md) | Final reflection (600–800 words) |
+| [attendance-evidence.md](attendance-evidence.md) | Meetup attendance template |
 
 ---
 

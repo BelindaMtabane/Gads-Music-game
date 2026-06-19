@@ -4,53 +4,123 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Drives the Victory scene.
+/// Drives the Victory / Game Center screen.
+///
 /// Flow:
-///   1. Scene fades in → "YOU WIN!" title shown
-///   2. Narration plays automatically
-///   3. After narration → Play Again and Main Menu buttons appear
+///   1. Scene fades in → "YOU WIN!" title + scoreboard shown immediately
+///   2. Narration plays automatically (auto-advances)
+///   3. After narration → action buttons appear:
+///        • NEXT LEVEL  — advances to the next gameplay scene  (hidden on final level)
+///        • PLAY AGAIN  — replays the just-completed level
+///        • MAIN MENU   — returns to StartScene
 /// </summary>
 public class VictoryHUD : MonoBehaviour
 {
     [Header("Scene names")]
-    public string gameSceneName     = "MainGameL1";
     public string mainMenuSceneName = "StartScene";
 
     [Header("UI References")]
     public TextMeshProUGUI titleText;
+    [Tooltip("Optional dedicated text field for the scoreboard. " +
+             "If null the score is appended to titleText.")]
+    public TextMeshProUGUI scoreText;
     public Button          playAgainButton;
     public Button          mainMenuButton;
+    [Tooltip("'Next Level' button — automatically hidden when the player " +
+             "has completed the final level.")]
     public Button          nextButton;
 
     [Header("Narration lines")]
     [TextArea(2, 5)]
     public string[] narrationLines = new string[]
     {
-        "Incredible! You collected all the instruments!",
-        "The music of freedom rings through the halls.",
-        "You outran the guard and saved the show. Congratulations!"
+        "Level complete! The artifact is secured.",
+        "Every step forward brings you closer to the final score.",
+        "Ready for the next challenge?"
     };
 
-    public string speakerName = "Narrator";
+    public string speakerName = "";
+
+    // ── Internal ──────────────────────────────────────────────────────────────
+    private int  _completedLevel;
+    private bool _hasNextLevel;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
+    private void Awake()
+    {
+        GameplayCanvasGuard.EnsureCanvasScale(gameObject);
+    }
+
     private void Start()
     {
         UICursor.UnlockForMenu();
         Time.timeScale = 1f;
 
-        if (titleText       != null) titleText.text = "YOU WIN!";
-        if (playAgainButton != null) playAgainButton.gameObject.SetActive(false);
-        if (mainMenuButton  != null) mainMenuButton.gameObject.SetActive(false);
+        _completedLevel = LevelProgress.CurrentLevel;
+        _hasNextLevel   = _completedLevel < LevelProgress.MaxLevel;
 
-        if (playAgainButton != null) playAgainButton.onClick.AddListener(OnPlayAgain);
-        if (mainMenuButton  != null) mainMenuButton.onClick.AddListener(OnMainMenu);
+        // ── Title ─────────────────────────────────────────────────────────────
+        if (titleText != null) titleText.text = "YOU WIN!";
 
-        if (playAgainButton != null) UIButtonRaycastFix.Apply(playAgainButton);
-        if (mainMenuButton  != null) UIButtonRaycastFix.Apply(mainMenuButton);
+        // ── Scoreboard ────────────────────────────────────────────────────────
+        ShowScoreboard();
+
+        // ── Buttons — hidden until narration finishes ──────────────────────
+        SetButtonVisible(playAgainButton, false);
+        SetButtonVisible(mainMenuButton,  false);
+        SetButtonVisible(nextButton,      false);
+
+        if (playAgainButton != null)
+        {
+            playAgainButton.onClick.AddListener(OnPlayAgain);
+            UIButtonRaycastFix.Apply(playAgainButton);
+        }
+        if (mainMenuButton != null)
+        {
+            mainMenuButton.onClick.AddListener(OnMainMenu);
+            UIButtonRaycastFix.Apply(mainMenuButton);
+        }
+        if (nextButton != null)
+        {
+            nextButton.onClick.AddListener(OnNextLevel);
+            UIButtonRaycastFix.Apply(nextButton);
+
+            // Update the label so it's clear what the button does
+            var label = nextButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null)
+                label.text = _hasNextLevel ? "NEXT LEVEL" : "FINISH";
+        }
 
         StartCoroutine(BeginNarration());
     }
+
+    // ── Scoreboard ────────────────────────────────────────────────────────────
+
+    private void ShowScoreboard()
+    {
+        // Try to find a dedicated ScoreText object in the scene if not assigned
+        if (scoreText == null)
+        {
+            var go = GameObject.Find("ScoreText");
+            if (go != null) scoreText = go.GetComponent<TextMeshProUGUI>();
+        }
+
+        var def       = LevelCatalog.Get(_completedLevel);
+        string header = $"<b>Level {_completedLevel}  —  {def.displayName}</b>";
+        string body   = RunStats.FormatScoreSummary();
+
+        if (scoreText != null)
+        {
+            scoreText.text = $"{header}\n\n{body}";
+        }
+        else if (titleText != null)
+        {
+            // Fallback: append score under the YOU WIN title using rich-text size tag
+            titleText.text = $"YOU WIN!\n\n<size=55%>{header}\n{body}</size>";
+        }
+    }
+
+    // ── Narration ─────────────────────────────────────────────────────────────
 
     IEnumerator BeginNarration()
     {
@@ -59,9 +129,11 @@ public class VictoryHUD : MonoBehaviour
         var lines = BuildLines();
         if (NarrationManager.Instance != null)
         {
-            NarrationManager.Instance.autoAdvance   = false;
-            NarrationManager.Instance.advanceButton = nextButton;
-            NarrationManager.Instance.Play(lines, OnNarrationComplete);
+            var nm = NarrationManager.Instance;
+            nm.autoAdvance   = true;
+            nm.autoDelay     = 2.5f;
+            nm.advanceButton = null;   // auto-advances; no manual button needed
+            nm.Play(lines, OnNarrationComplete);
         }
         else
         {
@@ -71,20 +143,67 @@ public class VictoryHUD : MonoBehaviour
 
     // ── Callbacks ─────────────────────────────────────────────────────────────
 
-    public void OnPlayAgain() { SceneFader.LoadScene(gameSceneName); }
-    public void OnMainMenu()  { SceneFader.LoadScene(mainMenuSceneName); }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private void OnNarrationComplete()
     {
         AudioManager.Instance?.StopNarrative();
-        if (playAgainButton != null) { UIButtonRaycastFix.Apply(playAgainButton); UIButtonRaycastFix.BringToFront(playAgainButton); playAgainButton.gameObject.SetActive(true); }
-        if (mainMenuButton  != null) { UIButtonRaycastFix.Apply(mainMenuButton);  UIButtonRaycastFix.BringToFront(mainMenuButton);  mainMenuButton.gameObject.SetActive(true); }
+        HideNarrationOverlay();
+
+        // Reveal action buttons
+        SetButtonVisible(playAgainButton, true);
+        SetButtonVisible(mainMenuButton,  true);
+
+        // Next Level only appears if there's somewhere to go
+        if (nextButton != null)
+            SetButtonVisible(nextButton, true);   // label already says FINISH if final level
+    }
+
+    public void OnPlayAgain()
+    {
+        // Replay the level the player just completed
+        SceneFader.LoadScene(LevelCatalog.GetGameplayScene(_completedLevel));
+    }
+
+    public void OnNextLevel()
+    {
+        if (_hasNextLevel)
+        {
+            LevelProgress.AdvanceLevel();
+            SceneFader.LoadScene(LevelCatalog.GetGameplayScene(LevelProgress.CurrentLevel));
+        }
+        else
+        {
+            // Final level complete — go to main menu
+            LevelProgress.ResetToFirstLevel();
+            SceneFader.LoadScene(mainMenuSceneName);
+        }
+    }
+
+    public void OnMainMenu()
+    {
+        SceneFader.LoadScene(mainMenuSceneName);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static void SetButtonVisible(Button btn, bool visible)
+    {
+        if (btn != null) btn.gameObject.SetActive(visible);
+    }
+
+    private void HideNarrationOverlay()
+    {
+        if (NarrationManager.Instance?.narrationPanel != null)
+            NarrationManager.Instance.narrationPanel.SetActive(false);
+
+        var panel = GameObject.Find("NarrationPanel");
+        if (panel != null) panel.SetActive(false);
     }
 
     private NarrationLine[] BuildLines()
     {
+        if (narrationLines == null || narrationLines.Length == 0)
+            return System.Array.Empty<NarrationLine>();
+
         var result = new NarrationLine[narrationLines.Length];
         for (int i = 0; i < narrationLines.Length; i++)
             result[i] = new NarrationLine(narrationLines[i], speakerName);

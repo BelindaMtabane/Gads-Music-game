@@ -6,26 +6,9 @@ public class HealthDecreaseObstacle : MonoBehaviour
     public int damage = 15;
 
     [Tooltip("High-danger obstacles end the run immediately.")]
-    public bool instantKill = true;
+    public bool instantKill = false;
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!other.CompareTag("Player")) return;
-
-        PickupBase pickup = other.GetComponent<PickupBase>();
-        if (pickup == null) return;
-
-        if (instantKill)
-        {
-            pickup.KillPlayer();
-        }
-        else
-        {
-            pickup.currentHealth = Mathf.Max(0, pickup.currentHealth - damage);
-            if (pickup.currentHealth <= 0)
-                pickup.KillPlayer();
-        }
-
-        Destroy(gameObject);
-    }
+    // Collision is handled by PickupBase.OnTriggerEnter (tag "HealthDEC") which calls
+    // ApplyObstacleDamage(this). A second OnTriggerEnter here would apply damage twice
+    // on the same frame, so this class is now a pure data container.
 }

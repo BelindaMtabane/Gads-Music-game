@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Animations;
+using System.Linq;
 
 /// <summary>
 /// Fixes the "brief animation then T-pose" glitch on game start.
@@ -12,6 +13,9 @@ using UnityEditor.Animations;
 /// </summary>
 public class FixAnimatorSettings
 {
+    const string Ch03Dae = "Assets/Animations/PlayerAnimations/idle/Ch03_nonPBR.dae";
+    const string RunDae  = "Assets/Animations/PlayerAnimations/run/Running.dae";
+
     [MenuItem("Tools/Fix Animator Settings")]
     public static void Fix()
     {
@@ -31,6 +35,8 @@ public class FixAnimatorSettings
         }
 
         FixAnimator(playerAnim, "Player");
+        AssignAvatar(playerAnim, Ch03Dae);
+        FixPlayerIdleClip();
 
         // ── Enemy animator ────────────────────────────────────────────────
         GameObject enemy = GameObject.Find("Enemy");
@@ -110,5 +116,78 @@ public class FixAnimatorSettings
         {
             SetWriteDefaults(child.stateMachine, ref count);
         }
+    }
+
+    static void AssignAvatar(Animator anim, string modelPath)
+    {
+        if (anim.avatar != null) return;
+
+        Avatar avatar = AssetDatabase.LoadAllAssetsAtPath(modelPath)
+            .OfType<Avatar>()
+            .FirstOrDefault();
+        if (avatar == null) return;
+
+        anim.avatar = avatar;
+        EditorUtility.SetDirty(anim);
+        Debug.Log($"[FixAnim] Assigned avatar from {modelPath}");
+    }
+
+    /// <summary>
+    /// Ch03_nonPBR.dae idle is a 1-frame bind pose — use the run clip slowed for Idle instead.
+    /// Jump must return to Run, not Idle, during gameplay.
+    /// </summary>
+    static void FixPlayerIdleClip()
+    {
+        const string controllerPath = "Assets/Animations/PlayerAnimations/PlayerController.controller";
+        var ctrl = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
+        if (ctrl == null) return;
+
+        AnimationClip runClip = AssetDatabase.LoadAllAssetsAtPath(RunDae)
+            .OfType<AnimationClip>()
+            .FirstOrDefault(c => !c.name.StartsWith("__preview__"));
+        if (runClip == null) return;
+
+        var root = ctrl.layers[0].stateMachine;
+        AnimatorState idleState = null;
+        AnimatorState runState  = null;
+        AnimatorState jumpState = null;
+
+        foreach (var cs in root.states)
+        {
+            if (cs.state.name == "Idle") idleState = cs.state;
+            if (cs.state.name == "Run")  runState  = cs.state;
+            if (cs.state.name == "Jump") jumpState = cs.state;
+        }
+
+        if (idleState != null)
+        {
+            idleState.motion = runClip;
+            idleState.speed  = 0.65f;
+        }
+
+        if (runState != null)
+            root.defaultState = idleState ?? runState;
+
+        if (jumpState != null && runState != null)
+        {
+            foreach (var t in jumpState.transitions)
+            {
+                if (t.destinationState == idleState)
+                {
+                    t.destinationState = runState;
+                    t.exitTime = 0.85f;
+                }
+            }
+
+            foreach (var t in runState.transitions)
+            {
+                if (t.destinationState == idleState)
+                    t.mute = true;
+            }
+        }
+
+        EditorUtility.SetDirty(ctrl);
+        AssetDatabase.SaveAssets();
+        Debug.Log("[FixAnim] Player Idle uses run clip; Jump returns to Run; default state = Run.");
     }
 }

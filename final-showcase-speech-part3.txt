@@ -1,0 +1,36 @@
+FINAL SHOWCASE SPEECH — After Goethe-Institut feedback
+11 June 2026 playtest — read aloud while recording (about 4 to 5 minutes)
+
+---
+
+This is our final showcase for Rhythm Raiders after the Goethe-Institut playtest on eleven June twenty twenty six at six pm.
+
+We showed the game to five players aged fourteen to twenty six. Here is what they told us and what we changed.
+
+WHAT PLAYTESTERS SAID
+
+Everyone said the user interface needs work. Two people asked for bigger fonts. One player asked to lower the dialogue box on the screen. Two players said artifacts were hard to see. One player said the character feels too small. One said change the words hits left on the heads up display. Two asked for more music. One loved the music and gaming vibe. The youngest player said the AI assisted dialogue helped him understand the game. Several said dialogue was simple and straightforward.
+
+WHAT WE IMPROVED AFTER FEEDBACK
+
+We fixed the canvas so user interface is visible again.
+
+We made narration text larger and moved the dialogue panel lower on the screen.
+
+We renamed Hits Left to Lives and show Artifacts collected out of two so the goal is clear.
+
+We made the player character and music note pickups bigger in the world so collectibles stand out.
+
+We kept the narrator tone simple because playtesters praised clarity.
+
+WHAT IS STILL PLANNED
+
+More background music layers. Pickup sounds that match the sneak sound style. Slightly slower base run speed when you do not have speed shoes. Longer run and menu polish. Side seats and curtain cut scenes are ideas for a future art pass.
+
+GAMEPLAY DEMO
+
+Watch the start flow, narration before countdown, then the chase. Collect two artifacts. Avoid the guard and lethal hazards. Win or lose with clear end screens.
+
+CLOSING
+
+The Goethe session proved the idea works. Our job was to listen, prioritize, and polish. Full feedback is in feedback-summary.md. Thank you.

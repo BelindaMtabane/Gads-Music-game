@@ -99,3 +99,58 @@ Chronological summary of polish, fixes, and features added during development (e
 Improve Rhythm Raiders: narration before countdown, game-over on catch/danger,
 2-artifact win, jump/ground fix, slower enemy, audio system, URP character fixes
 ```
+
+---
+
+## Part 3 — Goethe-Institut playtest (11 June 2026, 18:00)
+
+Source: five external players — see `feedback-summary.md`.
+
+| Feedback | Players | Response | Status |
+|----------|---------|----------|--------|
+| UI needs work; bigger font | All, P2, P5 | Narration font 28pt; canvas scale fix | Done |
+| Lower dialogue box | P4 | Narration panel anchored lower | Done |
+| Artifacts more visible | P3, P4 | Music-note artifact scale increased | Done |
+| Character bigger | P4 | Ch03 scale 0.015 → 0.02 | Done |
+| Change "Hits left" | P4 | HUD: **Lives** + **Artifacts X / 2** | Done |
+| AI dialogue clear / helpful | P1–P5 | Keep scripted tone; improve presentation only | Kept |
+| More music | P2, P3 | Extra layers in AudioManager | Planned |
+| Pickup/sneak sound link | P5 | Shared SFX palette | Planned |
+| Slower base speed | P4 | Tune forwardSpeed | Planned |
+| Too short / bugs | P4 | Level length + stability pass | Planned |
+| Side seats / curtains | P1, P2 | Environment & transition art | Deferred |
+
+Full plan: `goethe-improvements-plan.md`
+
+---
+
+## Part 3 — Earlier refinement (pre-Goethe)
+
+Refinements below were prioritized after **community meetup feedback** (`feedback-summary.md`). Each item maps to feedback IDs.
+
+| Feedback IDs | Change implemented | Visible in build? |
+|--------------|-------------------|-------------------|
+| U4, U1, N1 | Narration **before** countdown; `PlayAndWait`; Canvas scale (1,1,1) | Yes — briefing visible |
+| V2 | SceneFader + legacy overlay fixes; no permanent black screen | Yes |
+| V1 | URP character materials; Fix Character Pink Materials | Yes |
+| G1 | Enemy chase speed reduced (~3 units) | Yes — fairer first run |
+| G4, G5 | `KillPlayer()` → defeat anim → GameManager; lethal obstacles instant kill | Yes |
+| G2 | Win gated at **2 artifacts** via `TryTriggerVictory()` | Yes |
+| G3 | Foot `GroundCheck`; single jump per landing | Yes |
+| U2, U3 | `UICursor` + `UIButtonRaycastFix` on Death/Victory HUD | Yes |
+| N2 | Narrator / narrative audio `loop = false` | Yes (where clip assigned) |
+| N3 | Title **Rhythm Raiders** on start UI | Yes |
+| L1, L3 | Docs: `prompt-used.md`, `report.md`, README AI disclosure | Repo / showcase |
+
+### Deferred (documented in `critical-feedback.md`)
+
+| Feedback | Decision |
+|----------|----------|
+| L2 — Live Ollama dialogue in-game | Rejected: latency, scope, performance |
+| Rhythm-timing mechanic | Deferred: conflicts with current runner scope |
+| Multiplayer | Rejected: out of Part 3 scope |
+
+### Showcase video
+
+Final showcase must show **before/after** or verbally distinguish **original vs refined** behaviour (narration timing, game over on catch, working end-screen UI).
+

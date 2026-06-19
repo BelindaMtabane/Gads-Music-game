@@ -1,0 +1,345 @@
+================================================================================
+RHYTHM RAIDERS — PART 3 SUBMISSION COPY
+Game Design 3A (GADS7331) — Portfolio of Evidence
+Paste this into your Word / Google Docs submission document.
+================================================================================
+
+Student name(s): [INSERT YOUR NAME]
+Project: Rhythm Raiders (Gads-Music-game)
+Module: GADS7331 — Game Design 3A
+
+
+================================================================================
+SECTION A — EVIDENCE OF ATTENDANCE
+================================================================================
+
+Event: Goethe-Institut playtesting session
+Date: Wednesday, 11 June 2026
+Time: 18:00 (6pm)
+Project demonstrated: Rhythm Raiders (Unity 6 chase / collection game)
+
+EVENT PARAGRAPH
+
+On 11 June 2026 at 6pm, we attended a playtesting session hosted by the Goethe-Institut and presented Rhythm Raiders, our Unity chase game developed with an AI-assisted workflow (Ollama for local planning, Cursor and Claude for implementation). We set up a playable laptop build, invited attendees to play individually, and collected structured feedback on AI-assisted dialogue, user interface, narration, sound, and overall feel. The event was chosen because it is a public creative and technology-facing session with players who are not personal friends or classmates, which satisfies the Part 3 external engagement requirements.
+
+ACTIVE PARTICIPATION
+
+We did not attend passively. We demoed the build, explained the controls and win condition (collect two musical artifacts), answered questions about how AI tools supported development, and recorded each player’s comments immediately after their run using a category sheet (AI dialogue, UI, dialogue, sound, overall feel, and additional notes).
+
+EVIDENCE CHECKLIST
+
+[ ] Photo at Goethe-Institut event — attach to ARC submission
+[x] Written notes from five attendees (transcribed below in Section B)
+[x] Feedback identified by age and gender only (no private names)
+
+Photo file: [INSERT: your photo filename]
+Photo caption: Playtesting Rhythm Raiders at Goethe-Institut, 11 June 2026.
+
+
+================================================================================
+SECTION B — FEEDBACK SUMMARY
+================================================================================
+
+1. FEEDBACK PROVIDERS (age and gender only)
+
+Player P1 — Age 14, male — Younger / casual player
+Player P2 — Age 26, male — Adult player
+Player P3 — Age 23, female — Adult player
+Player P4 — Age 21, female — Adult player
+Player P5 — Age 25, male — Adult player
+
+2. RAW FEEDBACK BY PLAYER (unbiased record)
+
+--- Player P1 (age 14, male) ---
+AI dialogue: Helped understand the game
+UI: To work on it
+Dialogue: Cut scenes / curtains (presentation style)
+Sound: Great — love the idea
+Overall: Good — can be better
+
+--- Player P2 (age 26, male) ---
+AI dialogue: Simple and straightforward
+UI: Change
+Dialogue: (no extra note)
+Sound: Add more music
+Overall: (no extra note)
+Additional notes: More readable font; add seats on the sides (environment)
+
+--- Player P3 (age 23, female) ---
+AI dialogue: Simple and straightforward
+UI: Must be better
+Dialogue: Understandable
+Sound: Add more music
+Overall: It's okay
+Additional notes: Artifacts must be more visible
+
+--- Player P4 (age 21, female) ---
+AI dialogue: Simple and straightforward
+UI: Menu
+Dialogue: Understand
+Sound: (brief / positive)
+Overall: It's okay
+Additional notes: Artifacts more visible; too short; bugs
+Other: Box lower dialogue (dialogue panel position on screen)
+Other: Speed — slower when there are no speed shoes
+Other: Resize character — make bigger
+Other: "Hits left" — change wording
+Other: Idea is good
+
+--- Player P5 (age 25, male) ---
+AI dialogue: Dialogues understandable
+UI: Needs work; bigger font
+Dialogue: Understand
+Sound: Pickups must sound connected to sneaking sounds
+Overall: It's okay
+Additional notes: Love the idea of music and gaming — great vibe
+
+3. FEEDBACK GROUPED BY THEME
+
+AI dialogue / narration (scripted in game; developed with AI tools offline)
+- All five players found dialogue understandable or helpful
+- Player P1 (age 14) said AI-assisted dialogue helped him understand the game
+- Player P1 suggested stronger cut-scene / curtain presentation
+
+User interface and user experience
+- All five players said UI needs improvement
+- Players P2 and P5 asked for bigger, more readable fonts
+- Player P4 asked for menu improvements and a lower dialogue box on screen
+- Player P2 suggested side seating in the environment (set dressing)
+
+Gameplay and content
+- Players P3 and P4: artifacts must be more visible
+- Player P4: session feels too short; bugs during playtest
+- Player P4: player character too small
+- Player P4: base run speed too high without speed-shoe pickup
+- Player P4: change the HUD label "Hits left"
+
+Sound
+- Player P1: positive about sound direction
+- Players P2 and P3: add more music
+- Player P5: pickup sounds should feel connected to sneaking sounds
+
+Overall sentiment
+- Player P1: good, can be better
+- Players P2–P5: okay to positive
+- Player P5 strongly praised the music-and-gaming concept
+
+4. RECURRING THEMES (mentioned by multiple players)
+
+1. UI must improve — all five players
+2. AI / narrator dialogue is clear and helps understanding — four to five players
+3. More music needed — players P2 and P3
+4. Artifacts hard to see — players P3 and P4
+5. Core game idea is strong — especially music + chase + gaming vibe (player P5)
+
+5. INITIAL REACTIONS WHILE RECEIVING FEEDBACK
+
+Relief: The youngest player praised dialogue for helping him understand the game — this validated our narration work.
+
+Agreement: UI and font comments matched concerns we already had after long development sessions.
+
+Surprise: "Hits left" on the HUD confused players; we had not updated the label after changing catch behaviour.
+
+Surprise: Two adults could not see artifacts clearly — we had focused on guard chase, not pickup visibility.
+
+Concern: Player P4 reported bugs and short session length — this matched known UI canvas issues in that build.
+
+Motivation: Player P5’s praise for the music-and-gaming vibe confirmed we should polish presentation, not change the core idea.
+
+6. MAPPING TO PROJECT AREAS (for assessment rubric)
+
+LLM / AI dialogue: All players — clarity of scripted narrator; AI used in development pipeline
+UI / UX: All players — fonts, menus, dialogue box position
+Narrative: All players — understandable dialogue; curtains suggested by P1
+Gameplay: Artifact visibility, speed, session length, character scale
+Audio: More music; pickup and sneak sound cohesion
+Technical stability: Bugs noted by P4
+
+
+================================================================================
+SECTION C — CRITICAL ENGAGEMENT WITH FEEDBACK
+(Approximately 560 words)
+================================================================================
+
+WHAT DID I EXPECT?
+
+Before the Goethe-Institut session, I expected feedback on whether the chase fantasy works and whether players understood the two-artifact win condition. Because we use AI tools in development, I also expected questions about dialogue — but I assumed criticism would focus on guard difficulty and jump feel, which we had already tuned in earlier internal playtests.
+
+I expected younger players might struggle with controls; I did not expect the youngest tester (age 14) to praise AI-assisted dialogue as the feature that helped him understand the game. That shifted how I value narration relative to pure mechanics.
+
+WHAT SURPRISED ME?
+
+The strongest surprise was unanimous UI criticism combined with positive dialogue clarity. All five players said the UI needs work; four said dialogue and AI narration is simple and straightforward. We had been treating UI as secondary to making the run work, but external players experience menus, fonts, and dialogue boxes first.
+
+Artifact visibility surprised two adult players (P3 and P4). We invested in guard AI and pink-material fixes; players still could not see the goal objects clearly on the lane.
+
+Player P4 gave the densest list: bugs, too short, lower dialogue box, bigger character, speed without shoes, and change "hits left" wording. That matched technical debt we knew about (canvas scale bugs) but had not fully fixed before the event — so public feedback felt harsher than internal testing.
+
+Player P5’s comment that pickup sounds should connect to sneaking sounds was unexpected — an audio design cohesion note we had not considered. Players P2 and P3 both asked for more music, which aligns with our brand but exposes thin audio layering in the current build.
+
+Positive surprise: "Love the idea of music and gaming — great vibe" (player P5) and player P1 liking the sound concept. The core pitch lands; execution and polish lag.
+
+WHAT DID I IGNORE OR CHOOSE NOT TO IMPLEMENT?
+
+Side seats in the environment (player P2): Deferred. Valid set-dressing for a venue fantasy, but requires modelling time with low impact on the core loop before submission.
+
+Full curtain cut-scenes (player P1): Deferred to a future art pass. We lowered and enlarged the dialogue box instead for a faster user-experience gain.
+
+Live AI dialogue during play: Rejected for this milestone — latency, scope, and playtest stability. We keep scripted lines written with AI-assisted drafting offline.
+
+Making the level much longer immediately: Partially accepted. Player P4’s "too short" is noted; we plan more spawn distance but will not rebuild the entire level in the Part 3 deadline window.
+
+Every UI redesign suggestion without prioritization: We implemented font size, panel position, HUD labels, and visibility scales first; full menu redesign is staged, not ignored.
+
+EVALUATION OF FEASIBILITY
+
+Bigger font and lower dialogue box — High feasibility — Implemented
+Artifacts and character more visible — High feasibility — Implemented
+Rename "Hits Left" on HUD — High feasibility — Implemented as "Lives" and "Artifacts X / 2"
+More music — Medium feasibility — Planned in AudioManager
+Pickup and sneak sound cohesion — Medium feasibility — Planned sound-effects pass
+Base speed without speed shoes — Medium feasibility — Planned tuning of forward speed
+Bugs (UI canvas) — High feasibility — Canvas scale fixed
+Side seats and curtains — Low feasibility this sprint — Deferred
+
+FINAL JUDGEMENT
+
+Goethe feedback confirmed the idea and challenged the presentation. We integrate: readability, visibility, honest HUD language, and stability. We defer: environment dressing and cinematic curtains. We reject: scope explosions that risk another bug pass.
+
+This matches professional practice: playtests tell you what players feel, not what to build blindly. We documented what shipped versus what is next in our improvement plan and refinements log.
+
+Professional judgement means not agreeing with every comment — it means categorizing feedback, testing feasibility against Unity and time constraints, and shipping targeted improvements that honour the design intent of Rhythm Raiders as a short-session music-and-chase game.
+
+
+================================================================================
+SECTION D — IMPROVEMENTS STILL TO WORK ON
+================================================================================
+
+Based on Goethe-Institut playtest, 11 June 2026.
+
+ALREADY IMPLEMENTED (after playtest)
+
+1. Fix MainGameL1 UI Canvas scale to (1, 1, 1) — addresses bugs and invisible UI (player P4)
+2. Increase narration font size (20pt to 28pt) — players P2, P5
+3. Lower narration dialogue panel on screen — player P4
+4. Change HUD "Hits Left" to "Lives" and show "Artifacts: X / 2" — player P4
+5. Scale up music-note artifact collectibles in scene — players P3, P4
+6. Increase player character model scale (~33% larger) — player P4
+
+PLANNED — SHORT TERM (next refinement pass)
+
+1. Improve start menu layout, button sizes, and contrast — all players; menu noted by P4
+2. Add more background music layers and victory variety — players P2, P3
+3. Design pickup sound effects to match sneak audio theme — player P5
+4. Lower default run speed slightly when player has no speed-shoe pickup — player P4
+5. Extend level length or spawn distance so session feels less short — player P4
+6. Increase HUD font sizes for health and artifact text — player P2
+
+DEFERRED (documented, larger scope)
+
+1. Full curtain / cut-scene transitions before narration — player P1
+2. Side seating environment art along runner lanes — player P2
+
+REJECTED
+
+1. Live Ollama / LLM dialogue during gameplay — out of scope for stable demo; scripted narration kept; AI remains in development workflow only
+
+SHOWCASE VIDEO — POINTS TO DEMONSTRATE
+
+- Before: small text and high dialogue box → After: larger font, lower panel
+- Before: small character and hard-to-see artifacts → After: scaled up
+- Before: "Hits Left" → After: "Lives" and "Artifacts X / 2"
+- Keep narrator tone simple and straightforward (player praise)
+
+
+================================================================================
+SECTION E — REFINEMENTS COMPLETED FOR THE GAME
+================================================================================
+
+A. REFINEMENTS FROM GOETHE PLAYTEST (11 June 2026)
+
+Feedback: UI needs work; bigger font (all players, P2, P5)
+Response: Narration font increased to 28pt; UI canvas scale fixed
+Status: Done
+
+Feedback: Lower dialogue box (P4)
+Response: Narration panel repositioned lower on screen
+Status: Done
+
+Feedback: Artifacts more visible (P3, P4)
+Response: Music-note artifact scale increased in main level
+Status: Done
+
+Feedback: Character too small (P4)
+Response: Player model (Ch03) scale increased
+Status: Done
+
+Feedback: Change "Hits left" wording (P4)
+Response: HUD now shows "Lives" and "Artifacts: X / 2"
+Status: Done
+
+Feedback: AI dialogue clear and helpful (P1–P5)
+Response: Kept simple scripted narrator tone; improved presentation only
+Status: Kept / refined
+
+Feedback: More music (P2, P3)
+Response: Plan extra music layers in AudioManager
+Status: Planned
+
+Feedback: Pickup sounds match sneak theme (P5)
+Response: Plan unified sound-effects palette
+Status: Planned
+
+Feedback: Slower speed without speed shoes (P4)
+Response: Plan lower default forward speed
+Status: Planned
+
+Feedback: Too short and bugs (P4)
+Response: Plan longer spawn path; continued stability fixes
+Status: Planned
+
+Feedback: Side seats and curtains (P1, P2)
+Response: Deferred to future environment and animation pass
+Status: Deferred
+
+
+B. EARLIER REFINEMENTS (development and internal testing)
+
+Gameplay and win conditions
+- Victory requires 2 artifacts (centralized in PickupBase.TryTriggerVictory)
+- Instant game over when caught by security guard, with defeat animation
+- High-danger obstacles trigger game over through GameManager
+- Enemy chase speed reduced for fairer difficulty
+- Single jump per landing with correct foot ground check
+- Jump landing fix (ground check was wrongly assigned to Ground platform)
+
+Narration and scenes
+- Intro narration plays before 5-4-3-2-1 countdown
+- NarrationManager waits for all lines before gameplay starts
+- SceneFader for smooth scene transitions
+- Title branding: Rhythm Raiders
+- Death and Victory screens: working NEXT buttons and visible cursor
+
+Visual and technical
+- URP pink materials fixed on player and security guard
+- Editor tool: Fix Character Pink Materials
+- Runtime CharacterMaterialApplier
+
+Audio
+- AudioManager for background music, buttons, countdown, victory, game over
+- Setup Audio editor tool
+
+Code quality
+- Single death path: KillPlayer() through GameManager.TriggerGameOver()
+- Enemy catch uses trigger collider for CharacterController player
+
+
+================================================================================
+END OF SUBMISSION COPY
+================================================================================
+
+Notes for your personal document:
+- Add your name and student number at the top
+- Insert your Goethe-Institut photo where indicated
+- Section C meets the critical-feedback.md requirement (~400–600 words)
+- For final reflection report (600–800 words), see final-reflection-report.md in the project folder or expand Section C with professional engagement and ethics paragraphs

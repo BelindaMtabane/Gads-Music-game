@@ -1,18 +1,8 @@
 using UnityEngine;
 
+// Collection is handled by PickupBase via PickupTriggerProxy (HealthINC tag).
 public class HealthPickup : MonoBehaviour
 {
-    [Tooltip("How much health this pickup restores")]
+    [Tooltip("Legacy — healing is applied in PickupBase.")]
     public int healAmount = 20;
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!other.CompareTag("Player")) return;
-
-        PickupBase pickup = other.GetComponent<PickupBase>();
-        if (pickup == null) return;
-
-        pickup.currentHealth = Mathf.Min(pickup.currentHealth + healAmount, pickup.maxHealth);
-        Destroy(gameObject);
-    }
 }

@@ -160,7 +160,12 @@ public class HUDfunctions : MonoBehaviour
                 boostMsg = $"SNEAK  {_pickup.SneakTimeLeft:F0}s";
 
             TmpUiUtility.SetSafeText(boostText, boostMsg);
-            boostText.gameObject.SetActive(boostMsg.Length > 0);
+            // Hide/show the entire row (icon + text) not just the text object
+            var boostRow = boostText.transform.parent != null &&
+                           boostText.transform.parent != boostText.transform
+                           ? boostText.transform.parent.gameObject
+                           : boostText.gameObject;
+            boostRow.SetActive(boostMsg.Length > 0);
         }
 
         // ── Score ─────────────────────────────────────────────────────────────

@@ -79,8 +79,8 @@ public class NarrationManager : MonoBehaviour
         TmpUiUtility.EnsureFont(speakerText);
     }
 
-    /// <summary>Non-blocking subtitle during gameplay — no typewriter, auto-hides.</summary>
-    public void ShowGameplaySubtitle(string text, string speaker, float duration = 2.2f)
+    /// <summary>Non-blocking subtitle during gameplay — top bar overlay, auto-hides.</summary>
+    public void ShowGameplaySubtitle(string text, string speaker, float duration = 2.8f)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
 
@@ -99,40 +99,10 @@ public class NarrationManager : MonoBehaviour
         _lines = null;
         _onAllDone = null;
 
-        EnsureParentCanvasScale();
-        EnsureAllFonts();
-        UIInputFix.EnsureEventSystem();
-
-        if (narrationPanel != null)
-        {
-            narrationPanel.SetActive(true);
-            narrationPanel.transform.SetAsLastSibling();
-
-            var panelImage = narrationPanel.GetComponent<Image>();
-            if (panelImage != null)
-                panelImage.raycastTarget = false;
-        }
-
-        if (advanceButton != null)
-            advanceButton.gameObject.SetActive(false);
-
-        if (speakerText != null)
-        {
-            TmpUiUtility.SetSafeText(speakerText, speaker);
-            speakerText.gameObject.SetActive(!string.IsNullOrEmpty(speaker));
-        }
-
-        TmpUiUtility.SetSafeText(narrationText, text);
-
-        _subtitleHideRoutine = StartCoroutine(HideSubtitleAfter(duration));
-    }
-
-    IEnumerator HideSubtitleAfter(float duration)
-    {
-        yield return new WaitForSecondsRealtime(duration);
-        if (narrationPanel != null)
+        if (narrationPanel != null && narrationPanel.activeSelf)
             narrationPanel.SetActive(false);
-        _subtitleHideRoutine = null;
+
+        GameplayDialogueOverlay.Show(text, speaker, duration);
     }
 
     private void Update()

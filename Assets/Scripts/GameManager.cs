@@ -268,6 +268,7 @@ public class GameManager : MonoBehaviour
         AudioListener.pause = false;
         UICursor.UnlockForMenu();
         NarrationManager.Instance?.Cancel();
+        GameplayDialogueOverlay.Hide();
 
         ShowGameOverOverlay();
 
@@ -337,6 +338,7 @@ public class GameManager : MonoBehaviour
 
         _victoryTriggered = true;
         GameStarted = false;
+        GameplayDialogueOverlay.Hide();
         StartCoroutine(VictorySequence());
     }
 

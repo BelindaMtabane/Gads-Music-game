@@ -141,13 +141,13 @@ public class AIDialogueService : MonoBehaviour
 
     static void ShowSubtitle(string line, string speaker)
     {
-        if (NarrationManager.Instance == null) return;
-
         if (GameManager.GameStarted && !GameManager.IsGameOver)
         {
-            NarrationManager.Instance.ShowGameplaySubtitle(line, speaker, 2.2f);
+            GameplayDialogueOverlay.Show(line, speaker, 2.8f);
             return;
         }
+
+        if (NarrationManager.Instance == null) return;
 
         var nm = NarrationManager.Instance;
         nm.autoAdvance = true;

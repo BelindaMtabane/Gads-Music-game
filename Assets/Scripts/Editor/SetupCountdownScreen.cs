@@ -21,7 +21,7 @@ public class SetupCountdownScreen
     {
         EnsureTextureImport();
 
-        var scene = EditorSceneManager.OpenScene("Assets/Scenes/MainGameL1.unity", OpenSceneMode.Single);
+        var scene = EditorSceneManager.OpenScene(GameplaySceneNames.L1Path, OpenSceneMode.Single);
         var canvas = GameObject.Find("Canvas");
         if (canvas == null)
         {

@@ -34,7 +34,7 @@ public class SetupNarrationScenes
         SetupScene("Assets/Scenes/StartScene.unity",   BuildStartScene);
         SetupScene("Assets/Scenes/DeathScene.unity",   BuildDeathScene);
         SetupScene("Assets/Scenes/VictoryScene.unity", BuildVictoryScene);
-        SetupScene("Assets/Scenes/MainGameL1.unity",   BuildMainGameNarration);
+        SetupScene(GameplaySceneNames.L1Path,   BuildMainGameNarration);
 
         // Return to original scene
         EditorSceneManager.OpenScene(currentScene);

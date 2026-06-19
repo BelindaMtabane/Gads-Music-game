@@ -24,9 +24,9 @@ public static class FixCameraAndScale
     [MenuItem("Tools/Fix Camera and Scale")]
     public static void Run()
     {
-        if (SceneManager.GetActiveScene().name != "MainGameL1")
+        if (!GameplaySceneNames.IsGameplayScene(SceneManager.GetActiveScene().name))
         {
-            Debug.LogWarning("[FixCameraAndScale] Open MainGameL1 first.");
+            Debug.LogWarning("[FixCameraAndScale] Open a gameplay scene (MainGameL1Opera, Level2Museum, Level3UndergroundDance) first.");
             return;
         }
 

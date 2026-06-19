@@ -6,7 +6,7 @@ public class HealthDecreaseObstacle : MonoBehaviour
     public int damage = 15;
 
     [Tooltip("Always drains Vibe directly, even when Shield remains.")]
-    public int vibeDamage = 0;
+    public int vibeDamage = 5;
 
     [Tooltip("High-danger obstacles end the run immediately.")]
     public bool instantKill = false;

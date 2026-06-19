@@ -68,7 +68,7 @@ public class SetupNarrationBackground
         ApplyToScene("Assets/Scenes/StartScene.unity");
         ApplyToScene("Assets/Scenes/DeathScene.unity");
         ApplyToScene("Assets/Scenes/VictoryScene.unity");
-        ApplyToScene("Assets/Scenes/MainGameL1.unity");
+        ApplyToScene(GameplaySceneNames.L1Path);
 
         if (!string.IsNullOrEmpty(current))
             EditorSceneManager.OpenScene(current);

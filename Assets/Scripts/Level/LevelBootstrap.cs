@@ -95,8 +95,25 @@ public class LevelBootstrap : MonoBehaviour
         var spawner = GameObject.Find("spawnObjects")?.GetComponent<Spawner>();
         if (spawner == null)
             spawner = Object.FindAnyObjectByType<Spawner>();
+
         if (spawner != null)
+        {
             spawner.curtainSpawnChance = def.spawnCurtains ? spawner.curtainSpawnChance : 0f;
+
+            if (!def.spawnCurtains)
+            {
+                // Remove any curtain prefabs from the inline spawn pool so they never
+                // appear randomly on-track during L2 / L3 runs.
+                var clean = new System.Collections.Generic.List<GameObject>(
+                    spawner.spawnObjects ?? System.Array.Empty<GameObject>());
+                clean.RemoveAll(go => go != null
+                    && (go.CompareTag("Curtain") || go.name.StartsWith("Curtain")));
+                spawner.spawnObjects = clean.ToArray();
+
+                // Also clear the curtain prefab so TrySpawnSideCurtain never fires.
+                spawner.curtainPrefab = null;
+            }
+        }
     }
 
     static void ScaleArtifacts(float scale)

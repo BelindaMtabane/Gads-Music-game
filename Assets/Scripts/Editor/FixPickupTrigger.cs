@@ -19,9 +19,9 @@ public static class FixPickupTrigger
     [MenuItem("Tools/Fix Pickup Trigger")]
     public static void Run()
     {
-        if (SceneManager.GetActiveScene().name != "MainGameL1")
+        if (!GameplaySceneNames.IsGameplayScene(SceneManager.GetActiveScene().name))
         {
-            Debug.LogWarning("[FixPickupTrigger] Open MainGameL1 first.");
+            Debug.LogWarning("[FixPickupTrigger] Open a gameplay scene (MainGameL1Opera, Level2Museum, Level3UndergroundDance) first.");
             return;
         }
 

@@ -31,9 +31,9 @@ public static class SetupPauseScreen
     public static void Setup()
     {
         EnsureTextureImport();
-        SetupScene("Assets/Scenes/MainGameL1.unity", true, true);
+        SetupScene(GameplaySceneNames.L1Path, true, true);
         SetupScene("Assets/Scenes/StartScene.unity", false, false);
-        Debug.Log("[SetupPauseScreen] Pause UI applied to MainGameL1 and StartScene.");
+        Debug.Log("[SetupPauseScreen] Pause UI applied to MainGameL1Opera and StartScene.");
     }
 
     private static void SetupScene(string scenePath, bool requireGameStarted, bool showMainMenuButton)

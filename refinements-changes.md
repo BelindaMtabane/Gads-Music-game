@@ -4,6 +4,56 @@ Chronological summary of polish, fixes, and features added during development (e
 
 ---
 
+## Part 3 — Final development sprint (June 2026)
+
+### Scene renames & multi-level architecture
+
+| Change | Detail |
+|--------|--------|
+| Scene renamed | `MainGameL1` → `MainGameL1Opera` |
+| Scene renamed | `MainGameL2` → `Level2Museum` |
+| Scene renamed | `MainGameL3` → `Level3UndergroundDance` |
+| `GameplaySceneNames.cs` | Central constants file — single source of truth for all scene name strings across runtime and editor scripts |
+| All editor tools updated | `SetupBuildScenes`, `SetupAudio`, `SetupNarrationScenes`, `SetupPauseScreen`, `FixCameraAndScale`, `FixPickupTrigger`, `SetupNarrationBackground`, `SetupCountdownScreen`, `SetupPauseScreen` — all reference new names |
+| All runtime scripts updated | `LevelCatalog`, `DeathHUD`, `StartSceneUI`, `LevelIntroScreenHUD`, `AudioManager` — new scene name strings |
+
+### Sci-fi HUD
+
+| Change | Detail |
+|--------|--------|
+| `SetupGameplayHUD.cs` (editor tool) | `Tools → Setup Gameplay HUD (Sci-Fi Icons)` — builds HUD_Root with left panel (Vibe, Shield, Artifacts, Guard, Boost rows) and right panel (Score, Level) |
+| `HUDfunctions.cs` | In-game MonoBehaviour wired to TMP text fields; shortened labels (icons serve as labels) |
+| `HUDScaler.cs` | Inspector sliders for `scale` (0.5–2.0) and `iconSize` (0–80) attached to HUD_Root |
+| Icon pack | AIRIDev Sci-fi UI Icons used throughout |
+
+### Dual health system — Obstacle Vibe drain
+
+| Change | Detail |
+|--------|--------|
+| `HealthDecreaseObstacle.vibeDamage` | Default changed from 0 → **5** — every obstacle now drains 5 Vibe directly on hit |
+| `PickupBase.ApplyObstacleDamage()` | Applies Vibe drain first, then Shield absorption — both meters affected every obstacle hit |
+| Applies across all scenes | L1 Opera, L2 Museum, L3 Underground Club all share the same obstacle prefabs |
+
+### Level set dressing & end walls
+
+| Change | Detail |
+|--------|--------|
+| `LevelSetDressing.cs` | Per-level visual decorator: L1 gets opera curtains on sides during gameplay (existing); L2 gets museum display cases; L3 gets neon club strips |
+| L2 Museum end wall | Marble gate placed at Z+230 units ahead of player start — two columns, gold trim, marble slab, spotlight. Visual only (no physics collider) |
+| L3 Club end wall | Neon portal placed at Z+260 — dark backing, cyan top bar, pink side pillars, purple strip, point light. Visual only |
+| No mid-track wall spawning | `LevelBootstrap` strips curtain/wall entries from spawn pool for L2/L3; `curtainPrefab` nulled and curtain-tagged objects removed from `spawnObjects` array |
+
+### Pause menu button fix
+
+| Change | Detail |
+|--------|--------|
+| Root cause found | `PlayerMovement.Update()` called `UICursor.LockForGameplay()` every frame — including when `Time.timeScale = 0` (pause). This immediately re-hid the cursor after `Show()` unlocked it, making buttons unclickable |
+| Fix in `PlayerMovement.cs` | `if (Time.timeScale > 0f)` guard around `LockForGameplay()` call — cursor stays visible while paused |
+| `SetupPauseScreen.cs` | Now covers **all three gameplay scenes** (was L1 only); adds `GraphicRaycaster` to Canvas (required for button click detection); ensures `EventSystem` exists in each scene |
+| `PauseMenuHUD.cs` | Runtime guard in `Start()` — adds `GraphicRaycaster` if missing, so buttons work even if editor tool was not re-run |
+
+---
+
 ## Gameplay & win conditions
 
 | Change | Detail |

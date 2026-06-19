@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythm Raiders — Development & Feedback Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #1a1a2e; background: #f5f5f5; }
+  .page { max-width: 900px; margin: 30px auto; background: white; padding: 48px 56px; box-shadow: 0 2px 16px rgba(0,0,0,0.1); }
+
+  /* COVER */
+  .cover-banner { background: #1a1a2e; color: white; text-align: center; padding: 28px 20px; border-radius: 4px 4px 0 0; }
+  .cover-banner h1 { font-size: 32px; letter-spacing: 4px; font-weight: 800; }
+  .cover-sub { background: #16213e; color: #ccc; text-align: center; padding: 10px; font-style: italic; font-size: 13px; border-radius: 0 0 4px 4px; }
+  .meta { text-align: center; color: #888; font-size: 11px; margin: 10px 0 28px; }
+
+  /* SECTION HEADERS */
+  .section-head { background: #1a1a2e; color: white; padding: 9px 14px; font-size: 14px; font-weight: 700; margin: 28px 0 10px; border-radius: 3px; }
+
+  /* SUB HEADERS */
+  h3 { font-size: 12px; color: #0f3460; font-weight: 700; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* BODY TEXT */
+  p { color: #1a1a2e; margin-bottom: 8px; text-align: justify; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px; }
+  thead tr { background: #0f3460; color: white; }
+  thead th { padding: 7px 10px; text-align: left; font-weight: 600; }
+  tbody tr:nth-child(even) { background: #f0f4f8; }
+  tbody tr:nth-child(odd)  { background: white; }
+  td { padding: 6px 10px; color: #1a1a2e; vertical-align: top; border-bottom: 1px solid #ddd; }
+  .status-done    { color: #1a7a4a; font-weight: 700; }
+  .status-def     { color: #e8a020; font-weight: 700; }
+  .status-rej     { color: #c0392b; font-weight: 700; }
+  .status-partial { color: #2980b9; font-weight: 700; }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid #ddd; margin: 20px 0; }
+
+  /* PRINT */
+  @media print {
+    body { background: white; }
+    .page { box-shadow: none; margin: 0; padding: 20mm; }
+    .section-head { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    thead tr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- COVER -->
+<div class="cover-banner">
+  <h1>RHYTHM RAIDERS</h1>
+</div>
+<div class="cover-sub">Development &amp; Feedback Report &nbsp;·&nbsp; GADS7331 Game Design 3A &nbsp;·&nbsp; Part 3 Submission &nbsp;·&nbsp; June 2026</div>
+<div class="meta">Branch: <em>harriet's_work</em> &nbsp;·&nbsp; Repo: <em>BelindaMtabane/Gads-Music-game</em></div>
+<hr>
+
+<!-- 1. PROJECT OVERVIEW -->
+<div class="section-head">1. Project Overview</div>
+<p><strong>Rhythm Raiders</strong> is a 3D forward-scrolling chase/collection runner built in Unity 6 (URP 17.x, C#). The player sprints down a themed track, collects two musical artifacts to win, dodges obstacles, and outruns a security guard across three distinct levels.</p>
+<table>
+  <thead><tr><th>Item</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Engine</strong></td><td>Unity 6 (6000.3.0f1), URP 17.x, C#</td></tr>
+    <tr><td><strong>Levels</strong></td><td>L1 — Opera House · L2 — Museum · L3 — Underground Club</td></tr>
+    <tr><td><strong>Win condition</strong></td><td>Collect 2 musical artifacts before being caught</td></tr>
+    <tr><td><strong>Lose condition</strong></td><td>Caught by security guard or hit by lethal obstacle</td></tr>
+    <tr><td><strong>Health system</strong></td><td>Dual: Shield (absorbs hits first) + Vibe (direct drain from obstacles)</td></tr>
+    <tr><td><strong>UI system</strong></td><td>Sci-fi icon HUD · Pause menu · Narration overlay · Level intro screen</td></tr>
+    <tr><td><strong>Branch</strong></td><td>harriet's_work on BelindaMtabane/Gads-Music-game</td></tr>
+  </tbody>
+</table>
+
+<!-- 2. GOETHE PLAYTESTING -->
+<div class="section-head">2. Goethe-Institut Playtesting Session</div>
+<p>On <strong>11 June 2026 at 18:00</strong>, Rhythm Raiders was presented at a playtesting session hosted by the <strong>Goethe-Institut</strong>. Five external players (ages 14–26) played a laptop build and provided written and oral feedback on AI-assisted dialogue, UI, narration, sound, and overall game feel.</p>
+
+<h3>2.1 Player Feedback Summary</h3>
+<table>
+  <thead><tr><th>Player</th><th>Age / Gender</th><th>Key Feedback</th></tr></thead>
+  <tbody>
+    <tr><td><strong>P1</strong></td><td>14 / Male</td><td>AI dialogue helped understand the game. UI needs work. Wants curtain cut-scenes. Sound concept great.</td></tr>
+    <tr><td><strong>P2</strong></td><td>26 / Male</td><td>Dialogue simple and clear. UI change needed. More music. Bigger readable font. Add side seating in environment.</td></tr>
+    <tr><td><strong>P3</strong></td><td>23 / Female</td><td>Dialogue understandable. UI must be better. More music. Artifacts must be more visible.</td></tr>
+    <tr><td><strong>P4</strong></td><td>21 / Female</td><td>Artifacts more visible. Too short. Bugs noted. Lower dialogue box. Slower base speed. Bigger character. Change "Hits Left" wording.</td></tr>
+    <tr><td><strong>P5</strong></td><td>25 / Male</td><td>Dialogue understandable. UI needs work, bigger font. Pickup sounds should connect to sneaking sounds. Great vibe — music + gaming concept.</td></tr>
+  </tbody>
+</table>
+
+<h3>2.2 Recurring Themes (3+ Players)</h3>
+<table>
+  <thead><tr><th>Theme</th><th>Players</th><th>Summary</th></tr></thead>
+  <tbody>
+    <tr><td><strong>UI must improve</strong></td><td>All 5</td><td>Fonts, menus, layout — unanimous top priority from external playtesters</td></tr>
+    <tr><td><strong>AI narration is clear</strong></td><td>P1–P5</td><td>Scripted AI narration helps onboarding; keep and improve presentation</td></tr>
+    <tr><td><strong>More music</strong></td><td>P2, P3</td><td>Richer background music; aligns with Rhythm Raiders music-gaming identity</td></tr>
+    <tr><td><strong>Artifacts hard to see</strong></td><td>P3, P4</td><td>Collectibles not visible enough on the lane during the chase</td></tr>
+    <tr><td><strong>Positive core concept</strong></td><td>P1, P5</td><td>Music + chase + gaming vibe is working — strong positive praise for the idea</td></tr>
+  </tbody>
+</table>
+
+<!-- 3. IMPLEMENTED -->
+<div class="section-head">3. Feedback Implemented — What Was Done</div>
+<p>The following feedback items were assessed for feasibility and fully implemented before the Part 3 submission deadline.</p>
+<table>
+  <thead><tr><th>Feedback Item</th><th>Priority</th><th>Status</th><th>Action Taken</th></tr></thead>
+  <tbody>
+    <tr><td>UI invisible / canvas bugs (P4)</td><td>HIGH</td><td class="status-done">Done</td><td>Canvas scale fixed; GameplayCanvasGuard added to prevent (0,0,0) collapse</td></tr>
+    <tr><td>Bigger, more readable font (P2, P5)</td><td>HIGH</td><td class="status-done">Done</td><td>Narration 28pt; HUD 46pt bold; menu buttons 44pt across all scenes</td></tr>
+    <tr><td>Lower dialogue box position (P4)</td><td>HIGH</td><td class="status-done">Done</td><td>NarrationPanel anchors repositioned lower on screen</td></tr>
+    <tr><td>Change "Hits Left" wording (P4)</td><td>HIGH</td><td class="status-done">Done</td><td>HUD now shows Lives + Artifacts X/2 with sci-fi icon labels</td></tr>
+    <tr><td>Artifacts more visible (P3, P4)</td><td>HIGH</td><td class="status-done">Done</td><td>Gold pedestals added; scale increased; bob + pulse animation added</td></tr>
+    <tr><td>Character bigger (P4)</td><td>HIGH</td><td class="status-done">Done</td><td>Ch03 player model scale increased for better screen presence</td></tr>
+    <tr><td>Slower base speed (P4)</td><td>MED</td><td class="status-done">Done</td><td>baseForwardSpeed reduced; speed shoes now a meaningful +12 boost</td></tr>
+    <tr><td>Level too short (P4)</td><td>MED</td><td class="status-done">Done</td><td>RunLengthController extended; more pickups and obstacles per segment</td></tr>
+    <tr><td>More music (P2, P3)</td><td>MED</td><td class="status-done">Done</td><td>Dual music layer + victory stinger blend added to AudioManager</td></tr>
+    <tr><td>Pickup/sneak sound cohesion (P5)</td><td>MED</td><td class="status-done">Done</td><td>Generated pickup WAV palette in Assets/Audios/Pickups/ linked to sneak theme</td></tr>
+    <tr><td>Menu UI overhaul (all)</td><td>HIGH</td><td class="status-done">Done</td><td>Orange visible menu buttons; subtitle text; pause menu with settings sliders</td></tr>
+  </tbody>
+</table>
+
+<!-- 4. NOT IMPLEMENTED -->
+<div class="section-head">4. Feedback Not Implemented — Reasons</div>
+<p>Not every suggestion was actioned. Below is a transparent record of what was deferred or rejected, and the professional rationale behind each decision.</p>
+<table>
+  <thead><tr><th>Feedback Item</th><th>Decision</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Side seating / environment art (P2)</td>
+      <td class="status-def">Deferred</td>
+      <td>Valid set-dressing for the venue fantasy but requires custom 3D modelling. High time cost vs. low impact on the core loop before the submission deadline. Documented for a future art pass.</td>
+    </tr>
+    <tr>
+      <td>Full cinematic curtain cut-scenes (P1)</td>
+      <td class="status-def">Deferred</td>
+      <td>P1 wanted stronger transition cinematics. We added themed end walls for L2 and L3 as a faster gain. Full animated curtain transitions require additional art and animation time.</td>
+    </tr>
+    <tr>
+      <td>Live AI dialogue in-game</td>
+      <td class="status-rej">Rejected</td>
+      <td>Real-time LLM calls during gameplay introduce unacceptable latency, require persistent internet, and risk demo instability. Scripted narration written with AI-assisted drafting offline keeps the experience stable and dialogue quality controlled.</td>
+    </tr>
+    <tr>
+      <td>Multiplayer</td>
+      <td class="status-rej">Rejected</td>
+      <td>Entirely out of Part 3 scope. Networking would require a full rebuild of the core game loop.</td>
+    </tr>
+    <tr>
+      <td>Rhythm-timing mechanic</td>
+      <td class="status-def">Deferred</td>
+      <td>Beat-synced gameplay conflicts with the current runner scope and would need a full audio-gameplay integration system. Noted as a compelling direction for a future version.</td>
+    </tr>
+    <tr>
+      <td>Much longer level (P4)</td>
+      <td class="status-partial">Partial</td>
+      <td>Extended RunLengthController and increased spawn density. A complete level redesign with new obstacles and biomes is staged for a future sprint, not this submission window.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- 5. EXTRA WORK -->
+<div class="section-head">5. Extra Work Done — Beyond Playtest Feedback</div>
+<p>Several substantial improvements were made that were not directly requested by playtesters but significantly improve robustness, architecture, and visual identity.</p>
+
+<h3>5.1 Three-Level Architecture &amp; Scene Renames</h3>
+<p>The game was restructured from a single scene into a proper three-level progression. Scenes were renamed to reflect their themes (<strong>MainGameL1Opera</strong>, <strong>Level2Museum</strong>, <strong>Level3UndergroundDance</strong>). A central <strong>GameplaySceneNames.cs</strong> constants file was introduced as the single source of truth — eliminating hardcoded strings scattered across 15+ scripts and editor tools.</p>
+
+<h3>5.2 Sci-Fi HUD System</h3>
+<p>A complete HUD replacement was designed using the AIRIDev Sci-fi UI Icons pack. The new HUD features icon-led rows for Vibe, Shield, Artifacts, Guard distance, Speed Boost, Score, and Level. A <strong>HUDScaler</strong> component allows Inspector-controlled resizing. A dedicated editor tool (<em>Tools → Setup Gameplay HUD</em>) applies the full HUD to any scene in one click.</p>
+
+<h3>5.3 Dual Health System (Shield + Vibe)</h3>
+<p>Beyond renaming "Hits Left", the health system was architecturally expanded. All obstacles now drain <strong>Vibe</strong> directly (default 5 per hit) in addition to draining <strong>Shield</strong>. Shield absorbs damage first; when depleted, damage spills into Vibe. This creates meaningful tension between two health meters.</p>
+
+<h3>5.4 Per-Level Set Dressing &amp; Atmospheric End Walls</h3>
+<p>Each level has unique visual decoration built at runtime by <strong>LevelSetDressing.cs</strong>: opera house curtain pillars (L1), museum display cases (L2), neon club strips (L3). Each level also has a distinctive <strong>end wall</strong> placed far ahead — a marble museum gate (L2) and a neon portal (L3) — giving visual depth to the track without blocking player movement (no physics colliders).</p>
+
+<h3>5.5 Pause Menu (Full Feature)</h3>
+<p>A complete pause menu was built with Resume, Settings (live music + SFX volume sliders), and Main Menu buttons. The root bug preventing buttons from working was diagnosed and fixed: <strong>PlayerMovement.Update()</strong> was re-locking the cursor every frame including while paused at timeScale=0. Fixed with a single timeScale guard (<code>if (Time.timeScale &gt; 0f)</code>).</p>
+
+<h3>5.6 Architecture &amp; Editor Tooling</h3>
+<p>Fourteen editor tools were updated or created under the <em>Tools</em> menu to allow one-click setup of any scene: HUD, pause screen, narration, audio, build settings, character physics, and more. This ensures the game can be rebuilt from source without manual Inspector wiring — critical for a project using AI-assisted development where setups must be reproducible.</p>
+
+<!-- 6. FULL CHANGELOG -->
+<div class="section-head">6. Full Development Changelog</div>
+<table>
+  <thead><tr><th>Change</th><th>Phase</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td>Narration before countdown</td><td>Pre-Goethe</td><td>Intro narration plays before 5-4-3-2-1; PlayAndWait coroutine added</td></tr>
+    <tr><td>Canvas scale fix</td><td>Pre-Goethe</td><td>MainGameL1 UI Canvas (0,0,0) → (1,1,1); GameplayCanvasGuard added</td></tr>
+    <tr><td>Scene fader</td><td>Pre-Goethe</td><td>SceneFader builds persistent fade canvas; legacy FadeOverlay disabled</td></tr>
+    <tr><td>URP character materials</td><td>Pre-Goethe</td><td>Pink Mixamo materials fixed; FixCharacterURPMaterials editor tool created</td></tr>
+    <tr><td>Enemy speed reduced</td><td>Pre-Goethe</td><td>Guard chase speed reduced ~3 units for fairer first run</td></tr>
+    <tr><td>2-artifact win condition</td><td>Pre-Goethe</td><td>PickupBase.TryTriggerVictory() gates win at exactly 2 artifacts</td></tr>
+    <tr><td>Foot GroundCheck fix</td><td>Pre-Goethe</td><td>groundCheck was wrongly wired to Ground platform; auto foot check added</td></tr>
+    <tr><td>Death routing</td><td>Pre-Goethe</td><td>All kill paths route through GameManager.TriggerGameOver(); defeat animation plays</td></tr>
+    <tr><td>AudioManager system</td><td>Pre-Goethe</td><td>Singleton: music, SFX, countdown, victory, game-over audio</td></tr>
+    <tr><td>UICursor + button raycasts</td><td>Pre-Goethe</td><td>Cursor locks in gameplay, unlocks on menus; UIButtonRaycastFix on HUD</td></tr>
+    <tr><td>HUD font/label overhaul</td><td>Post-Goethe</td><td>46pt bold labels; "Hits Left" → Lives + Artifacts X/2</td></tr>
+    <tr><td>Narration panel lowered</td><td>Post-Goethe</td><td>Dialogue box anchors repositioned lower on screen</td></tr>
+    <tr><td>Artifact visibility</td><td>Post-Goethe</td><td>Gold pedestals, bob + pulse animation, scale increase</td></tr>
+    <tr><td>Character scale increase</td><td>Post-Goethe</td><td>Ch03 player model scale increased for better screen presence</td></tr>
+    <tr><td>Base speed tuned</td><td>Post-Goethe</td><td>baseForwardSpeed reduced; speed shoes now meaningful +12 boost</td></tr>
+    <tr><td>Level length extended</td><td>Post-Goethe</td><td>RunLengthController + more spawns per segment</td></tr>
+    <tr><td>Dual music layer</td><td>Post-Goethe</td><td>Second music track + victory stinger blend added</td></tr>
+    <tr><td>Pickup sound palette</td><td>Post-Goethe</td><td>WAV pack generated and linked to sneak SFX theme</td></tr>
+    <tr><td>Menu UI redesign</td><td>Post-Goethe</td><td>Orange buttons, pause menu, visible settings, sci-fi icon HUD</td></tr>
+    <tr><td>Scene renames (3 levels)</td><td>Final sprint</td><td>MainGameL1Opera, Level2Museum, Level3UndergroundDance + GameplaySceneNames.cs</td></tr>
+    <tr><td>Sci-fi HUD</td><td>Final sprint</td><td>Icon-led rows: Vibe, Shield, Artifacts, Guard, Boost, Score, Level; HUDScaler</td></tr>
+    <tr><td>Dual health — Vibe drain</td><td>Final sprint</td><td>vibeDamage default 5; every obstacle drains both Shield and Vibe</td></tr>
+    <tr><td>L2/L3 end walls</td><td>Final sprint</td><td>Museum marble gate (Z+230); Club neon portal (Z+260); visual only, no collision</td></tr>
+    <tr><td>Per-level set dressing</td><td>Final sprint</td><td>LevelSetDressing runtime decorator: curtains, museum display cases, neon strips</td></tr>
+    <tr><td>Pause menu buttons fixed</td><td>Final sprint</td><td>PlayerMovement cursor lock guard (timeScale &gt; 0); GraphicRaycaster added</td></tr>
+    <tr><td>SetupPauseScreen expanded</td><td>Final sprint</td><td>Covers all 3 gameplay scenes; adds EventSystem and GraphicRaycaster if missing</td></tr>
+  </tbody>
+</table>
+
+<!-- 7. SUMMARY TABLE -->
+<div class="section-head">7. Feedback Response Summary</div>
+<table>
+  <thead><tr><th>Feedback Item</th><th>Source</th><th>Status</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>UI overhaul (fonts, layout, menus)</td><td>All players</td><td class="status-done">Done</td><td>Sci-fi HUD, bigger fonts, lower narration, pause menu</td></tr>
+    <tr><td>Artifacts more visible</td><td>P3, P4</td><td class="status-done">Done</td><td>Gold pedestals, scale increase, bob + pulse animation</td></tr>
+    <tr><td>Character bigger</td><td>P4</td><td class="status-done">Done</td><td>Ch03 scale increased</td></tr>
+    <tr><td>Slower base speed</td><td>P4</td><td class="status-done">Done</td><td>Speed tuned; shoes now meaningful boost</td></tr>
+    <tr><td>Level longer</td><td>P4</td><td class="status-done">Done</td><td>RunLengthController extended</td></tr>
+    <tr><td>More music</td><td>P2, P3</td><td class="status-done">Done</td><td>Dual layer + victory stinger</td></tr>
+    <tr><td>Pickup/sneak sound link</td><td>P5</td><td class="status-done">Done</td><td>WAV palette generated and linked</td></tr>
+    <tr><td>Canvas / bug fixes</td><td>P4</td><td class="status-done">Done</td><td>GameplayCanvasGuard; pause button cursor fix</td></tr>
+    <tr><td>Side seating environment</td><td>P2</td><td class="status-def">Deferred</td><td>Requires 3D art — documented for future pass</td></tr>
+    <tr><td>Full curtain cut-scenes</td><td>P1</td><td class="status-def">Deferred</td><td>Partial: themed end walls added for L2 &amp; L3 instead</td></tr>
+    <tr><td>Live AI in-game dialogue</td><td>—</td><td class="status-rej">Rejected</td><td>Latency, demo stability, and scope issues</td></tr>
+    <tr><td>Multiplayer</td><td>—</td><td class="status-rej">Rejected</td><td>Out of Part 3 scope entirely</td></tr>
+  </tbody>
+</table>
+
+<!-- 8. CLOSING -->
+<div class="section-head">8. Closing Notes</div>
+<p>Rhythm Raiders has been transformed from a single-scene AI-assisted prototype into a three-level polished runner that a stranger can pick up and play without guidance. The Goethe-Institut playtesting session was the central event that prioritised the refinement work — player voices confirmed what to fix (UI, visibility, pacing) and what to protect (the core concept, AI-assisted narration, the music-gaming vibe).</p>
+<p>Work that went beyond the feedback — the three-level architecture, dual health system, sci-fi HUD, level set dressing, and full pause menu — reflects professional practice: a game should not just address critique but also build the systems that make future iteration possible.</p>
+<p>All source changes are committed to the <strong>harriet's_work</strong> branch on <strong>BelindaMtabane/Gads-Music-game</strong> and documented in <em>refinements-changes.md</em>.</p>
+
+<hr>
+<p style="text-align:center; color:#999; font-size:11px; margin-top:16px;">Submitted June 2026 &nbsp;·&nbsp; GADS7331 Game Design 3A &nbsp;·&nbsp; Rhythm Raiders</p>
+
+</div>
+</body>
+</html>

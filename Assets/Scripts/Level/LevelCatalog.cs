@@ -84,8 +84,8 @@ public static class LevelCatalog
         gameplayScene    = "Level2Museum",
         nextIntroScene   = "Level3IntroScene",
         briefingTitle    = "Music Museum — Level 2",
-        gameplayCutscene = LevelCutsceneType.MuseumSecurityDoor,   // cutscene now plays in-game
-        introCutscene    = LevelCutsceneType.MuseumSecurityDoor,
+        gameplayCutscene = LevelCutsceneType.MuseumSecurityDoor,
+        introCutscene    = LevelCutsceneType.None,
         briefingLine1    = "Ancient instruments locked behind motion sensors and rolling drum traps.",
         briefingLine2    = "The guards patrol tighter here. Two artifacts — extract before lockdown.",
         startHint1       = "Museum security is heavier. Sneak pickups when you can.",
@@ -113,8 +113,8 @@ public static class LevelCatalog
         gameplayScene    = "Level3UndergroundDance",
         nextIntroScene   = "VictoryScene",
         briefingTitle    = "Underground Club — Level 3",
-        gameplayCutscene = LevelCutsceneType.ClubDiscoBall,        // cutscene now plays in-game
-        introCutscene    = LevelCutsceneType.ClubDiscoBall,
+        gameplayCutscene = LevelCutsceneType.ClubDiscoBall,
+        introCutscene    = LevelCutsceneType.None,
         briefingLine1    = "The artifact is hidden beneath the main DJ stage.",
         briefingLine2    = "Guards move with the beat drops. Lasers and sound traps everywhere.",
         startHint1       = "Final run — neon lights, maximum pressure. Stay on beat!",

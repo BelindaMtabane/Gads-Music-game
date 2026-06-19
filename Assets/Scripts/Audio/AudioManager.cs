@@ -21,7 +21,9 @@ public class AudioManager : MonoBehaviour
 
     // ── Clips (assign in Inspector or via Setup Audio editor tool) ────────────
     [Header("Audio Clips")]
-    public AudioClip backgroundMusic;   // background_sound.mp3
+    public AudioClip backgroundMusic;   // L1 — background_sound.mp3
+    public AudioClip level2Music;       // L2 — level2museumSound.mp3
+    public AudioClip level3Music;       // L3 — level3GameSound.mp3
     public AudioClip buttonSound;       // button_sound.mp3
     public AudioClip countdownSound;    // count_down_sound.mp3
     public AudioClip victorySound;      // game_victory_sound.mp3
@@ -36,6 +38,10 @@ public class AudioManager : MonoBehaviour
     public AudioClip sneakPickupSound;
     public AudioClip speedPickupSound;
     public AudioClip jumpPickupSound;
+
+    [Header("Obstacle SFX")]
+    public AudioClip obstacleHitSound;
+    public AudioClip slowDownObstacleSound;
 
     [Header("Cutscene SFX (optional — procedural fallback if blank)")]
     public AudioClip curtainCutsceneSound;
@@ -130,9 +136,12 @@ public class AudioManager : MonoBehaviour
                 break;
 
             case "MainGameL1Opera":
+                PlayBackground(GetClipForScene(sceneName), useMusicLayer: true);
+                break;
+
             case "Level2Museum":
             case "Level3UndergroundDance":
-                PlayBackground();
+                PlayBackground(GetClipForScene(sceneName), useMusicLayer: false);
                 break;
 
             case "Level2IntroScene":
@@ -151,21 +160,42 @@ public class AudioManager : MonoBehaviour
 
     // ── Public API ────────────────────────────────────────────────────────────
 
+    AudioClip GetClipForScene(string sceneName)
+    {
+        return sceneName switch
+        {
+            "Level2Museum" => level2Music != null ? level2Music : backgroundMusic,
+            "Level3UndergroundDance" => level3Music != null ? level3Music : backgroundMusic,
+            _ => backgroundMusic
+        };
+    }
+
     public void PlayBackground()
     {
-        if (backgroundMusic == null) return;
-        _musicSource.clip   = backgroundMusic;
+        PlayBackground(backgroundMusic, useMusicLayer: true);
+    }
+
+    public void PlayBackground(AudioClip clip, bool useMusicLayer)
+    {
+        if (clip == null) return;
+        _musicSource.clip   = clip;
         _musicSource.volume = musicVolume;
         _musicSource.loop   = true;
         _musicSource.Play();
 
-        var layerClip = backgroundMusicLayer != null ? backgroundMusicLayer : backgroundMusic;
-        if (_musicLayerSource != null && layerClip != null)
+        if (_musicLayerSource == null) return;
+
+        if (useMusicLayer)
         {
+            var layerClip = backgroundMusicLayer != null ? backgroundMusicLayer : clip;
             _musicLayerSource.clip   = layerClip;
             _musicLayerSource.volume = musicVolume * 0.35f;
             _musicLayerSource.loop   = true;
             _musicLayerSource.Play();
+        }
+        else
+        {
+            _musicLayerSource.Stop();
         }
     }
 
@@ -247,6 +277,8 @@ public class AudioManager : MonoBehaviour
     public void PlayHealthPickupSfx() => PlayClipOrFallback(healthPickupSound, 1f, 0.7f);
     public void PlaySpeedPickupSfx() => PlayClipOrFallback(speedPickupSound, 1.35f, 0.8f);
     public void PlayJumpPickupSfx() => PlayClipOrFallback(jumpPickupSound, 1.22f, 0.75f);
+    public void PlayObstacleHitSfx() => PlayClipOrFallback(obstacleHitSound, 0.55f, 0.85f);
+    public void PlaySlowDownObstacleSfx() => PlayClipOrFallback(slowDownObstacleSound, 0.48f, 0.75f);
 
     public void PlayCutsceneStinger(LevelCutsceneType type, int phase = 0)
     {

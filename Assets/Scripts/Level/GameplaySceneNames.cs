@@ -23,4 +23,19 @@ public static class GameplaySceneNames
         }
         return sceneName is "MainGameL1" or "MainGameL2" or "MainGameL3";
     }
+
+    /// <summary>Maps a loaded gameplay scene name to level 1–3 (0 if unknown).</summary>
+    public static int GetLevelNumber(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName)) return 0;
+        for (int i = 0; i < AllNames.Length; i++)
+        {
+            if (sceneName == AllNames[i])
+                return i + 1;
+        }
+        if (sceneName == "MainGameL1") return 1;
+        if (sceneName == "MainGameL2") return 2;
+        if (sceneName == "MainGameL3") return 3;
+        return 0;
+    }
 }

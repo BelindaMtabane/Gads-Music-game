@@ -168,11 +168,11 @@ public class VictoryHUD : MonoBehaviour
         if (_hasNextLevel)
         {
             LevelProgress.AdvanceLevel();
-            SceneFader.LoadScene(LevelCatalog.GetGameplayScene(LevelProgress.CurrentLevel));
+            int next = LevelProgress.CurrentLevel;
+            SceneFader.LoadScene(LevelCatalog.GetGameplayScene(next));
         }
         else
         {
-            // Final level complete — go to main menu
             LevelProgress.ResetToFirstLevel();
             SceneFader.LoadScene(mainMenuSceneName);
         }

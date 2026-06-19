@@ -13,15 +13,11 @@ public class LevelBootstrap : MonoBehaviour
 
     private void Awake()
     {
-        int level = levelNumber > 0 ? levelNumber : LevelProgress.CurrentLevel;
-        if (level <= 0) level = 1;
-
         string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (levelNumber <= 0 && sceneName.Contains("L3", System.StringComparison.OrdinalIgnoreCase))
-            level = 3;
-        else if (levelNumber <= 0 && sceneName.Contains("L2", System.StringComparison.OrdinalIgnoreCase))
-            level = 2;
-        else if (levelNumber <= 0 && sceneName.Contains("L1", System.StringComparison.OrdinalIgnoreCase))
+        int level = levelNumber > 0 ? levelNumber : LevelProgress.CurrentLevel;
+        if (level <= 0)
+            level = GameplaySceneNames.GetLevelNumber(sceneName);
+        if (level <= 0)
             level = 1;
 
         definition = LevelCatalog.Get(level);

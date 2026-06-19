@@ -7,7 +7,6 @@ public class Level2ButtonHandler : UnityEngine.MonoBehaviour
     public void GoToLevel2()
     {
         LevelProgress.SetLevel(2);
-        string scene = LevelCatalog.GetGameplayScene(2);
-        SceneFader.LoadScene(scene);
+        SceneFader.LoadScene(LevelCatalog.GetGameplayScene(2));
     }
 }

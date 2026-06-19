@@ -12,14 +12,18 @@ public class SetupMainMenu
 {
     public const string MenuBgPath = "Assets/UI/Menu/main_menu_background.png";
 
-    private static readonly Vector2 PlayMin     = new Vector2(0.28f, 0.595f);
-    private static readonly Vector2 PlayMax     = new Vector2(0.72f, 0.685f);
-    private static readonly Vector2 PauseMin    = new Vector2(0.28f, 0.490f);
-    private static readonly Vector2 PauseMax    = new Vector2(0.72f, 0.580f);
-    private static readonly Vector2 NarrativeMin = new Vector2(0.28f, 0.385f);
-    private static readonly Vector2 NarrativeMax = new Vector2(0.72f, 0.475f);
-    private static readonly Vector2 SettingsMin = new Vector2(0.28f, 0.280f);
-    private static readonly Vector2 SettingsMax = new Vector2(0.72f, 0.370f);
+    private static readonly Vector2 PlayMin      = new Vector2(0.28f, 0.647f);
+    private static readonly Vector2 PlayMax      = new Vector2(0.72f, 0.740f);
+    private static readonly Vector2 Level2Min    = new Vector2(0.28f, 0.554f);
+    private static readonly Vector2 Level2Max    = new Vector2(0.72f, 0.647f);
+    private static readonly Vector2 Level3Min    = new Vector2(0.28f, 0.461f);
+    private static readonly Vector2 Level3Max    = new Vector2(0.72f, 0.554f);
+    private static readonly Vector2 PauseMin     = new Vector2(0.28f, 0.368f);
+    private static readonly Vector2 PauseMax     = new Vector2(0.72f, 0.461f);
+    private static readonly Vector2 NarrativeMin = new Vector2(0.28f, 0.275f);
+    private static readonly Vector2 NarrativeMax = new Vector2(0.72f, 0.368f);
+    private static readonly Vector2 SettingsMin  = new Vector2(0.28f, 0.182f);
+    private static readonly Vector2 SettingsMax  = new Vector2(0.72f, 0.275f);
 
     [MenuItem("Tools/Setup Main Menu")]
     public static void Setup()
@@ -42,10 +46,12 @@ public class SetupMainMenu
         var menuPanel = EnsurePanel(canvas, "MenuPanel", Vector2.zero, Vector2.one);
         menuPanel.transform.SetAsLastSibling();
 
-        var playBtn     = EnsureMenuButton(menuPanel, "PlayButton",     "PLAY",     PlayMin, PlayMax);
-        var pauseBtn    = EnsureMenuButton(menuPanel, "PauseButton",    "PAUSE",    PauseMin, PauseMax);
-        var narrativeBtn = EnsureMenuButton(menuPanel, "NarrativeButton", "NARRATIVE", NarrativeMin, NarrativeMax);
-        var settingsBtn = EnsureMenuButton(menuPanel, "SettingsButton", "SETTINGS", SettingsMin, SettingsMax);
+        var playBtn      = EnsureMenuButton(menuPanel, "PlayButton",       "PLAY",      PlayMin, PlayMax);
+        var level2Btn    = EnsureMenuButton(menuPanel, "PlayLevel2Button", "LEVEL 2",   Level2Min, Level2Max);
+        var level3Btn    = EnsureMenuButton(menuPanel, "PlayLevel3Button", "LEVEL 3",   Level3Min, Level3Max);
+        var pauseBtn     = EnsureMenuButton(menuPanel, "PauseButton",      "PAUSE",     PauseMin, PauseMax);
+        var narrativeBtn = EnsureMenuButton(menuPanel, "NarrativeButton",  "NARRATIVE", NarrativeMin, NarrativeMax);
+        var settingsBtn  = EnsureMenuButton(menuPanel, "SettingsButton",   "SETTINGS",  SettingsMin, SettingsMax);
         RemoveMenuSubtitle(menuPanel);
 
         var pausePanel = EnsureOverlay(canvas, "PausePanel", "PAUSED", "RESUME", out var pauseResumeBtn);
@@ -58,6 +64,8 @@ public class SetupMainMenu
         var ui = canvas.GetComponent<StartSceneUI>() ?? canvas.AddComponent<StartSceneUI>();
         ui.menuPanel            = menuPanel;
         ui.playButton           = playBtn;
+        ui.level2Button         = level2Btn;
+        ui.level3Button         = level3Btn;
         ui.pauseButton          = pauseBtn;
         ui.narrativeButton      = narrativeBtn;
         ui.settingsButton       = settingsBtn;

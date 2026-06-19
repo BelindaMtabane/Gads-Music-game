@@ -130,7 +130,7 @@ public class RunLengthController : MonoBehaviour
 
         foreach (Transform child in source.transform)
         {
-            if (child.name == "groundtrigger" || child.CompareTag("GroundTrigger"))
+            if (GroundStreamExclude.ShouldSkipChild(child))
                 continue;
 
             var clone = Instantiate(child.gameObject, template.transform);

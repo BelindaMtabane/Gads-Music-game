@@ -21,6 +21,8 @@ public class StartSceneUI : MonoBehaviour
     [Header("Menu")]
     public GameObject menuPanel;
     public Button playButton;
+    public Button level2Button;
+    public Button level3Button;
     public Button narrativeButton;   // NEW — opens the story narration from the menu
     public Button pauseButton;
     public Button settingsButton;
@@ -68,6 +70,8 @@ public class StartSceneUI : MonoBehaviour
         if (settingsPanel != null) settingsPanel.SetActive(false);
 
         WireButton(playButton,     OnPlay);
+        WireButton(level2Button,   OnPlayLevel2);
+        WireButton(level3Button,   OnPlayLevel3);
         WireButton(narrativeButton, OnNarrative);
         WireButton(pauseButton,    OnPause);
         WireButton(settingsButton, OnSettings);
@@ -122,13 +126,25 @@ public class StartSceneUI : MonoBehaviour
 
     public void OnPlay()
     {
-        LevelProgress.ResetToFirstLevel();
+        LoadGameplayLevel(1);
+    }
+
+    public void OnPlayLevel2()
+    {
+        LoadGameplayLevel(2);
+    }
+
+    public void OnPlayLevel3()
+    {
+        LoadGameplayLevel(3);
+    }
+
+    void LoadGameplayLevel(int level)
+    {
+        LevelProgress.SetLevel(level);
         if (_menuPaused) OnResume();
         AudioManager.Instance?.StopNarrative();
-        var scene = string.IsNullOrEmpty(gameSceneName) || GameplaySceneNames.IsGameplayScene(gameSceneName)
-            ? LevelCatalog.GetGameplayScene(1)
-            : gameSceneName;
-        SceneFader.LoadScene(scene);
+        SceneFader.LoadScene(LevelCatalog.GetGameplayScene(level));
     }
 
     public void OnPause()

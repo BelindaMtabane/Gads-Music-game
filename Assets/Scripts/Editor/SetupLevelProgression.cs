@@ -59,6 +59,8 @@ public static class SetupLevelProgression
         Debug.Log($"[LevelProgression] {Path.GetFileName(source)} → {Path.GetFileName(dest)}");
     }
 
+    // Note: Sync overwrites Level2Museum — run only before custom L2 art (walls, etc.) is applied.
+
     static void WireGameplayScene(string scenePath, int level)
     {
         if (!File.Exists(scenePath)) return;

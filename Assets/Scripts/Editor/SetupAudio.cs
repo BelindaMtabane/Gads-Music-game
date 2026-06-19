@@ -11,6 +11,8 @@ public class SetupAudio
 {
     // Audio clip paths
     private const string BACKGROUND = "Assets/Audios/background_sound.mp3";
+    private const string LEVEL2_MUSIC = "Assets/Audios/level2museumSound.mp3";
+    private const string LEVEL3_MUSIC = "Assets/Audios/level3GameSound.mp3";
     private const string BUTTON     = "Assets/Audios/button_sound.mp3";
     private const string COUNTDOWN  = "Assets/Audios/count_down_sound.mp3";
     private const string VICTORY    = "Assets/Audios/game_victory_sound.mp3";
@@ -21,10 +23,14 @@ public class SetupAudio
     private const string PICKUP_SNEAK    = "Assets/Audios/Pickups/pickup_sneak.wav";
     private const string PICKUP_SPEED    = "Assets/Audios/Pickups/pickup_speed.wav";
     private const string PICKUP_JUMP     = "Assets/Audios/Pickups/pickup_jump.wav";
+    private const string OBSTACLE_HIT    = "Assets/Audios/Pickups/obstacle_hit.wav";
+    private const string OBSTACLE_SLOW   = "Assets/Audios/Pickups/obstacle_slowdown.wav";
 
     private static readonly string[] Scenes = {
         "Assets/Scenes/StartScene.unity",
         "Assets/Scenes/MainGameL1Opera.unity",
+        "Assets/Scenes/Level2Museum.unity",
+        "Assets/Scenes/Level3UndergroundDance.unity",
         "Assets/Scenes/DeathScene.unity",
         "Assets/Scenes/VictoryScene.unity",
     };
@@ -56,6 +62,8 @@ public class SetupAudio
     {
         // Load clips
         var bgClip        = AssetDatabase.LoadAssetAtPath<AudioClip>(BACKGROUND);
+        var level2Clip    = AssetDatabase.LoadAssetAtPath<AudioClip>(LEVEL2_MUSIC);
+        var level3Clip    = AssetDatabase.LoadAssetAtPath<AudioClip>(LEVEL3_MUSIC);
         var btnClip       = AssetDatabase.LoadAssetAtPath<AudioClip>(BUTTON);
         var cdClip        = AssetDatabase.LoadAssetAtPath<AudioClip>(COUNTDOWN);
         var victoryClip   = AssetDatabase.LoadAssetAtPath<AudioClip>(VICTORY);
@@ -72,6 +80,8 @@ public class SetupAudio
 
         existing.backgroundMusic = bgClip;
         existing.backgroundMusicLayer = bgClip;
+        existing.level2Music = level2Clip;
+        existing.level3Music = level3Clip;
         existing.buttonSound     = btnClip;
         existing.countdownSound  = cdClip;
         existing.victorySound    = victoryClip;
@@ -82,6 +92,8 @@ public class SetupAudio
         existing.sneakPickupSound    = AssetDatabase.LoadAssetAtPath<AudioClip>(PICKUP_SNEAK);
         existing.speedPickupSound    = AssetDatabase.LoadAssetAtPath<AudioClip>(PICKUP_SPEED);
         existing.jumpPickupSound     = AssetDatabase.LoadAssetAtPath<AudioClip>(PICKUP_JUMP);
+        existing.obstacleHitSound    = AssetDatabase.LoadAssetAtPath<AudioClip>(OBSTACLE_HIT);
+        existing.slowDownObstacleSound = AssetDatabase.LoadAssetAtPath<AudioClip>(OBSTACLE_SLOW);
         EditorUtility.SetDirty(existing.gameObject);
 
         // ── ButtonSoundPlayer on every Button ─────────────────────────────────

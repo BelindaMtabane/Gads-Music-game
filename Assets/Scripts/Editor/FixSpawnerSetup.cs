@@ -23,6 +23,25 @@ public static class FixSpawnerSetup
         "Health - Pickup",
     };
 
+    static readonly string[] Level2ObstaclePickupNames =
+    {
+        "Random Obstacle - health Decrease",
+        "Slow down  - Obstacle",
+        "Museum Statue - Obstacle",
+        "Sneak - Pickup",
+        "Speed boost - Pickup",
+        "Jump Boost  - Pickup",
+    };
+
+    static readonly string[] Level3ObstaclePickupNames =
+    {
+        "Random Obstacle - health Decrease",
+        "Slow down  - Obstacle",
+        "Neon Stack - Obstacle",
+        "Jump Boost  - Pickup",
+        "Speed boost - Pickup",
+    };
+
     const string ArtifactName = "Artifact - Goal";
     const string SpawnerObjectName = "spawnObjects";
     const string RunLengthControllerName = "RunLengthController";
@@ -31,9 +50,9 @@ public static class FixSpawnerSetup
     public static void Run()
     {
         string scene = SceneManager.GetActiveScene().name;
-        if (!scene.StartsWith("MainGameL"))
+        if (!scene.StartsWith("MainGameL") && scene != "Level2Museum" && scene != "Level3UndergroundDance")
         {
-            Debug.LogWarning("[FixSpawnerSetup] Open MainGameL1, L2, or L3 first.");
+            Debug.LogWarning("[FixSpawnerSetup] Open a gameplay scene first.");
             return;
         }
 
@@ -74,7 +93,13 @@ public static class FixSpawnerSetup
         }
 
         var templates = new System.Collections.Generic.List<GameObject>();
-        foreach (var name in ObstaclePickupNames)
+        var names = scene switch
+        {
+            "Level2Museum" => Level2ObstaclePickupNames,
+            "Level3UndergroundDance" => Level3ObstaclePickupNames,
+            _ => ObstaclePickupNames
+        };
+        foreach (var name in names)
         {
             var go = FindAnyInScene(name);
             if (go != null)
@@ -84,6 +109,22 @@ public static class FixSpawnerSetup
         }
 
         spawner.spawnObjects = templates.ToArray();
+        if (scene == "Level3UndergroundDance")
+        {
+            spawner.spawnCount = 13;
+            spawner.weightedObjects = new[]
+            {
+                WeightedEntry(FindAnyInScene("Random Obstacle - health Decrease"), 4),
+                WeightedEntry(FindAnyInScene("Slow down  - Obstacle"), 4),
+                WeightedEntry(FindAnyInScene("Neon Stack - Obstacle"), 3),
+                WeightedEntry(FindAnyInScene("Jump Boost  - Pickup"), 1),
+                WeightedEntry(FindAnyInScene("Speed boost - Pickup"), 1),
+            };
+        }
+        else
+        {
+            spawner.weightedObjects = System.Array.Empty<WeightedSpawnEntry>();
+        }
         EditorUtility.SetDirty(spawner);
         fixes++;
 
@@ -131,6 +172,11 @@ public static class FixSpawnerSetup
             template.SetActive(false);
             EditorUtility.SetDirty(template);
         }
+    }
+
+    static WeightedSpawnEntry WeightedEntry(GameObject prefab, int weight)
+    {
+        return new WeightedSpawnEntry { prefab = prefab, weight = weight };
     }
 
     static GameObject FindAnyInScene(string name)

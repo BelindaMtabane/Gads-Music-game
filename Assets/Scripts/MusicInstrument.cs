@@ -36,7 +36,6 @@ public class MusicInstrument : MonoBehaviour
         if (pickup != null)
             pickup.CollectArtifact(artifactValue, moneyValue);
 
-        AudioManager.Instance?.PlayArtifactPickupSfx();
         PickupCollectUtility.TryConsume(gameObject);
     }
 }

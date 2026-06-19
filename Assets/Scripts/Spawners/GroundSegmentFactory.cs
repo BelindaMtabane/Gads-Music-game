@@ -75,7 +75,7 @@ public static class GroundSegmentFactory
 
         foreach (Transform child in template.transform)
         {
-            if (child.name == "groundtrigger" || child.CompareTag("GroundTrigger"))
+            if (GroundStreamExclude.ShouldSkipChild(child))
                 continue;
 
             var clone = Object.Instantiate(child.gameObject, segment.transform);

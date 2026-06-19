@@ -2790,6 +2790,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthDecreaseObstacle
   damage: 15
+  vibeDamage: 0
   instantKill: 0
 --- !u!54 &385503140
 Rigidbody:
@@ -10422,6 +10423,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
   backgroundMusic: {fileID: 8300000, guid: 0a286b0fc099f7d4bb682999fa3f2cf2, type: 3}
+  level2Music: {fileID: 8300000, guid: 41c1bb3283b99f247a2744579b2cbdbb, type: 3}
+  level3Music: {fileID: 8300000, guid: 54ef6b46e0a2510499e5b107f5920de4, type: 3}
   buttonSound: {fileID: 8300000, guid: dbece0e01d0dee1488dd6dbd40ebb9f4, type: 3}
   countdownSound: {fileID: 8300000, guid: 10c49b7c08f02794a925c9d90a8fba3f, type: 3}
   victorySound: {fileID: 8300000, guid: eb04077781874104bb752c0f0c75ef89, type: 3}
@@ -10433,6 +10436,8 @@ MonoBehaviour:
   sneakPickupSound: {fileID: 8300000, guid: 0534231466fdb8b4187afa63b122deb5, type: 3}
   speedPickupSound: {fileID: 8300000, guid: 612bb7e80a9de7f4bbc633da00cceb2f, type: 3}
   jumpPickupSound: {fileID: 8300000, guid: e3e37699a4e7fd244b7c1956606a841b, type: 3}
+  obstacleHitSound: {fileID: 8300000, guid: 7993420a9dd46aa45b602f2e8ffceed3, type: 3}
+  slowDownObstacleSound: {fileID: 8300000, guid: b69bcdfcc02124d4b90c7da7c90f06d4, type: 3}
   curtainCutsceneSound: {fileID: 0}
   securityDoorSound: {fileID: 0}
   discoBallSound: {fileID: 0}

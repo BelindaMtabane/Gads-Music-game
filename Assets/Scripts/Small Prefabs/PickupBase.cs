@@ -108,6 +108,7 @@ public class PickupBase : MonoBehaviour
         {
             _solidHitTimes[rootId] = Time.time;
             Debug.Log("Player bumped a dangerous obstacle!");
+            AudioManager.Instance?.PlayObstacleHitSfx();
             var obstacle = other.GetComponentInParent<HealthDecreaseObstacle>();
             if (obstacle != null)
                 ApplyObstacleDamage(obstacle);
@@ -143,6 +144,7 @@ public class PickupBase : MonoBehaviour
         if (HasTag(other, "HealthDEC"))
         {
             Debug.Log("Player hit a dangerous obstacle!");
+            AudioManager.Instance?.PlayObstacleHitSfx();
             var obstacle = other.GetComponentInParent<HealthDecreaseObstacle>();
             if (obstacle != null)
                 ApplyObstacleDamage(obstacle);
@@ -157,7 +159,6 @@ public class PickupBase : MonoBehaviour
                 return;
 
             Debug.Log("Player hit an artifac and has increased the amount!");
-            AudioManager.Instance?.PlayArtifactPickupSfx();
             Artifact();
             DestroyPickupRoot(other);
         }
@@ -222,9 +223,22 @@ public class PickupBase : MonoBehaviour
     {
         if (obstacle == null) return;
         if (obstacle.instantKill)
+        {
             KillPlayer(DeathCause.Obstacle);
-        else
-            ApplyDamage(obstacle.damage);
+            return;
+        }
+
+        if (obstacle.vibeDamage > 0)
+        {
+            currentHealth = Mathf.Max(0, currentHealth - obstacle.vibeDamage);
+            if (currentHealth <= 0)
+            {
+                KillPlayer(DeathCause.Obstacle);
+                return;
+            }
+        }
+
+        ApplyDamage(obstacle.damage);
     }
 
     /// <summary>
@@ -287,6 +301,7 @@ public class PickupBase : MonoBehaviour
 
         artifactAmount += count;
         artifactMoneyTotal += money;
+        AudioManager.Instance?.PlayArtifactPickupSfx();
         Debug.Log($"Artifact collected! Total: {artifactAmount}, Value: ${artifactMoneyTotal}");
 
         // First artifact collected → guard surges to add tension

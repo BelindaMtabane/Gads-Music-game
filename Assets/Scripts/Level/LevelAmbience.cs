@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Per-level lighting and atmosphere (Opera warm, Museum gallery, Club neon).
@@ -62,16 +63,31 @@ public class LevelAmbience : MonoBehaviour
     {
         if (_directional != null)
         {
-            _directional.color = new Color(0.55f, 0.65f, 1f);
-            _directional.intensity = 0.45f;
+            _directional.color = new Color(0.72f, 0.76f, 0.95f);
+            _directional.intensity = 0.72f;
         }
-        RenderSettings.ambientLight = new Color(0.04f, 0.03f, 0.08f);
+
+        RenderSettings.ambientMode = AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.2f, 0.19f, 0.28f);
+        RenderSettings.ambientIntensity = 1f;
+        RenderSettings.reflectionIntensity = 0.6f;
         RenderSettings.fog = true;
         RenderSettings.fogMode = FogMode.Linear;
-        RenderSettings.fogColor = new Color(0.02f, 0.01f, 0.06f);
-        RenderSettings.fogStartDistance = 25f;
-        RenderSettings.fogEndDistance = 90f;
+        RenderSettings.fogColor = new Color(0.14f, 0.13f, 0.24f);
+        RenderSettings.fogStartDistance = 55f;
+        RenderSettings.fogEndDistance = 140f;
+
+        ApplyTwilightCamera();
+
         _pulseRoutine = StartCoroutine(PulseNeonLights());
+    }
+
+    static void ApplyTwilightCamera()
+    {
+        var cam = Camera.main;
+        if (cam == null) return;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = new Color(0.14f, 0.16f, 0.3f);
     }
 
     IEnumerator PulseNeonLights()

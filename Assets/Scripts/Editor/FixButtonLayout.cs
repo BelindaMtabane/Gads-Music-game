@@ -14,10 +14,12 @@ public static class FixButtonLayout
     // Four equal-height rows inside the orange panel on the menu art.
     static readonly (string name, Vector2 min, Vector2 max)[] ButtonLayout =
     {
-        ("PlayButton",      new Vector2(0.28f, 0.595f), new Vector2(0.72f, 0.685f)),
-        ("PauseButton",     new Vector2(0.28f, 0.490f), new Vector2(0.72f, 0.580f)),
-        ("NarrativeButton", new Vector2(0.28f, 0.385f), new Vector2(0.72f, 0.475f)),
-        ("SettingsButton",  new Vector2(0.28f, 0.280f), new Vector2(0.72f, 0.370f)),
+        ("PlayButton",       new Vector2(0.28f, 0.647f), new Vector2(0.72f, 0.740f)),
+        ("PlayLevel2Button", new Vector2(0.28f, 0.554f), new Vector2(0.72f, 0.647f)),
+        ("PlayLevel3Button", new Vector2(0.28f, 0.461f), new Vector2(0.72f, 0.554f)),
+        ("PauseButton",      new Vector2(0.28f, 0.368f), new Vector2(0.72f, 0.461f)),
+        ("NarrativeButton",  new Vector2(0.28f, 0.275f), new Vector2(0.72f, 0.368f)),
+        ("SettingsButton",   new Vector2(0.28f, 0.182f), new Vector2(0.72f, 0.275f)),
     };
 
     [MenuItem("Tools/Fix Button Layout")]
@@ -50,6 +52,18 @@ public static class FixButtonLayout
             dup.name = "NarrativeButton";
         }
 
+        if (menuPanel.Find("PlayLevel2Button") == null)
+        {
+            var dup = Object.Instantiate(play.gameObject, menuPanel);
+            dup.name = "PlayLevel2Button";
+        }
+
+        if (menuPanel.Find("PlayLevel3Button") == null)
+        {
+            var dup = Object.Instantiate(play.gameObject, menuPanel);
+            dup.name = "PlayLevel3Button";
+        }
+
         for (int i = 0; i < ButtonLayout.Length; i++)
         {
             var (name, min, max) = ButtonLayout[i];
@@ -65,6 +79,8 @@ public static class FixButtonLayout
             SetLabel(btn, name switch
             {
                 "PlayButton" => "PLAY",
+                "PlayLevel2Button" => "LEVEL 2",
+                "PlayLevel3Button" => "LEVEL 3",
                 "PauseButton" => "PAUSE",
                 "NarrativeButton" => "NARRATIVE",
                 "SettingsButton" => "SETTINGS",
@@ -73,20 +89,43 @@ public static class FixButtonLayout
         }
 
         var narrative = menuPanel.Find("NarrativeButton");
+        var level2 = menuPanel.Find("PlayLevel2Button");
+        var level3 = menuPanel.Find("PlayLevel3Button");
         var startSceneUI = FindInactive<StartSceneUI>();
-        if (startSceneUI != null && narrative != null)
+        if (startSceneUI != null)
         {
-            var btn = narrative.GetComponent<Button>();
-            if (btn != null)
+            if (narrative != null)
             {
-                startSceneUI.narrativeButton = btn;
-                EditorUtility.SetDirty(startSceneUI);
+                var btn = narrative.GetComponent<Button>();
+                if (btn != null)
+                {
+                    startSceneUI.narrativeButton = btn;
+                    EditorUtility.SetDirty(startSceneUI);
+                }
+            }
+            if (level2 != null)
+            {
+                var btn = level2.GetComponent<Button>();
+                if (btn != null)
+                {
+                    startSceneUI.level2Button = btn;
+                    EditorUtility.SetDirty(startSceneUI);
+                }
+            }
+            if (level3 != null)
+            {
+                var btn = level3.GetComponent<Button>();
+                if (btn != null)
+                {
+                    startSceneUI.level3Button = btn;
+                    EditorUtility.SetDirty(startSceneUI);
+                }
             }
         }
 
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         EditorSceneManager.SaveOpenScenes();
-        Debug.Log("[FixButtonLayout] Menu buttons laid out — PLAY, PAUSE, NARRATIVE, SETTINGS.");
+        Debug.Log("[FixButtonLayout] Menu buttons laid out — PLAY, LEVEL 2, LEVEL 3, PAUSE, NARRATIVE, SETTINGS.");
     }
 
     static void SetAnchors(GameObject go, Vector2 min, Vector2 max)

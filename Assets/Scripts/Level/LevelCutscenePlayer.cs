@@ -6,8 +6,8 @@ using TMPro;
 /// <summary>
 /// Full-screen UI cutscenes per level theme:
 /// L1 Opera — red curtains part
-/// L2 Museum — security slide doors open
-/// L3 Club — disco ball drops and spins
+/// L2 Museum — ornate doors open (museumdoor texture)
+/// L3 Club — underground neon door opens (undergroundoor texture)
 /// </summary>
 public static class LevelCutscenePlayer
 {
@@ -120,6 +120,24 @@ public static class LevelCutscenePlayer
     }
 
     // Creates a centred title card with a large level number and subtitle.
+    static GameObject CreateBannerTitle(Transform parent, string line)
+    {
+        var card = new GameObject("TitleCard");
+        card.transform.SetParent(parent, false);
+        var cardRt = card.AddComponent<RectTransform>();
+        cardRt.anchorMin = new Vector2(0.1f, 0.38f);
+        cardRt.anchorMax = new Vector2(0.9f, 0.62f);
+        cardRt.offsetMin = cardRt.offsetMax = Vector2.zero;
+
+        var bg = card.AddComponent<Image>();
+        bg.color = new Color(0f, 0f, 0f, 0.5f);
+        bg.raycastTarget = false;
+
+        AddTitleText(card.transform, line, fontSize: 52, yAnchorMin: 0.1f, yAnchorMax: 0.9f,
+            color: new Color(1f, 0.92f, 0.55f, 1f));
+        return card;
+    }
+
     static GameObject CreateTitleCard(Transform parent, string levelLine, string subtitleLine)
     {
         var card = new GameObject("TitleCard");
@@ -193,71 +211,116 @@ public static class LevelCutscenePlayer
 
     static IEnumerator PlayMuseumSecurityDoor(GameObject root)
     {
-        var top = CreatePanel(root.transform, "DoorTop",
-            new Vector2(0f, 0.5f), new Vector2(1f, 1.05f), new Color(0.35f, 0.38f, 0.42f, 1f));
-        var bottom = CreatePanel(root.transform, "DoorBottom",
-            new Vector2(0f, -0.05f), new Vector2(1f, 0.5f), new Color(0.28f, 0.31f, 0.35f, 1f));
-
-        AddStripe(top.transform, new Color(0.9f, 0.75f, 0.2f, 0.85f));
-        AddStripe(bottom.transform, new Color(0.9f, 0.75f, 0.2f, 0.85f));
-
-        var topRt = top.GetComponent<RectTransform>();
-        var botRt = bottom.GetComponent<RectTransform>();
-
-        yield return AnimateAnchors(topRt, new Vector2(0f, 1.05f), new Vector2(1f, 0.5f), 0.85f);
-        yield return AnimateAnchors(botRt, new Vector2(0f, -0.05f), new Vector2(1f, 0.5f), 0.85f);
-        PlayCutsceneAudio(LevelCutsceneType.MuseumSecurityDoor, 1);
-        yield return new WaitForSecondsRealtime(0.25f);
-
-        PlayCutsceneAudio(LevelCutsceneType.MuseumSecurityDoor, 2);
-
-        yield return AnimateAnchors(topRt, new Vector2(0f, 0.5f), new Vector2(1f, 1.08f), 0.7f);
-        yield return AnimateAnchors(botRt, new Vector2(0f, 0.5f), new Vector2(1f, -0.08f), 0.7f);
-        yield return FadeOut(root, 0.35f);
+        yield return PlayTextureDoorCutscene(root, "museumdoor", "MUSEUM READY LEVEL 2",
+            LevelCutsceneType.MuseumSecurityDoor);
     }
 
     static IEnumerator PlayClubDiscoBall(GameObject root)
     {
-        var ball = CreatePanel(root.transform, "DiscoBall",
-            new Vector2(0.42f, 0.72f), new Vector2(0.58f, 0.88f), new Color(0.85f, 0.9f, 1f, 1f));
-        var ballRt = ball.GetComponent<RectTransform>();
-        PlayCutsceneAudio(LevelCutsceneType.ClubDiscoBall, 1);
+        yield return PlayTextureDoorCutscene(root, "undergroundoor", "UNDERGROUND READY LEVEL 3",
+            LevelCutsceneType.ClubDiscoBall);
+    }
 
-        for (int i = 0; i < 6; i++)
+    static IEnumerator PlayTextureDoorCutscene(GameObject root, string textureResource, string bannerText,
+        LevelCutsceneType audioType)
+    {
+        var doorTex = Resources.Load<Texture2D>(textureResource);
+
+        var frame = CreateAspectFitFrame(root.transform, "DoorFrame", doorTex);
+
+        var left = CreateDoorPanel(frame.transform, "DoorLeft", doorTex, leftHalf: true);
+        var right = CreateDoorPanel(frame.transform, "DoorRight", doorTex, leftHalf: false);
+
+        var leftRt = left.GetComponent<RectTransform>();
+        var rightRt = right.GetComponent<RectTransform>();
+
+        leftRt.anchorMin = new Vector2(0f, 0f);
+        leftRt.anchorMax = new Vector2(0.5f, 1f);
+        rightRt.anchorMin = new Vector2(0.5f, 0f);
+        rightRt.anchorMax = new Vector2(1f, 1f);
+        leftRt.offsetMin = leftRt.offsetMax = Vector2.zero;
+        rightRt.offsetMin = rightRt.offsetMax = Vector2.zero;
+
+        var title = CreateBannerTitle(root.transform, bannerText);
+        yield return FadeInGraphic(title.GetComponentsInChildren<Graphic>(), 0.4f);
+        PlayCutsceneAudio(audioType, 1);
+        yield return new WaitForSecondsRealtime(1.2f);
+
+        PlayCutsceneAudio(audioType, 2);
+        yield return FadeOutGraphics(title.GetComponentsInChildren<Graphic>(), 0.25f);
+
+        yield return AnimateAnchors(leftRt, new Vector2(0f, 0f), new Vector2(-0.5f, 0f), 0.85f);
+        yield return AnimateAnchors(rightRt, new Vector2(0.5f, 0f), new Vector2(1f, 0f), 0.85f);
+        rightRt.anchorMax = new Vector2(1.5f, 1f);
+        yield return FadeOutAllGraphics(root, 0.35f);
+    }
+
+    static GameObject CreateAspectFitFrame(Transform parent, string name, Texture2D tex)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var rt = go.AddComponent<RectTransform>();
+        ApplyAspectFit(rt, tex);
+        return go;
+    }
+
+    static void ApplyAspectFit(RectTransform rt, Texture2D tex)
+    {
+        if (tex == null)
         {
-            float a = i * Mathf.PI * 2f / 6f;
-            var spark = CreatePanel(ball.transform, $"Spark{i}",
-                new Vector2(0.45f, 0.45f), new Vector2(0.55f, 0.55f),
-                Color.HSVToRGB((i * 0.17f) % 1f, 0.8f, 1f));
-            var srt = spark.GetComponent<RectTransform>();
-            srt.anchoredPosition = new Vector2(Mathf.Cos(a) * 80f, Mathf.Sin(a) * 80f);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            return;
         }
 
-        float t = 0f;
-        const float dropDuration = 1.4f;
-        while (t < dropDuration)
+        float texAspect = (float)tex.width / tex.height;
+        float screenAspect = (float)Screen.width / Mathf.Max(1, Screen.height);
+
+        if (texAspect >= screenAspect)
         {
-            t += Time.unscaledDeltaTime;
-            float p = Mathf.SmoothStep(0f, 1f, t / dropDuration);
-            ballRt.anchorMin = new Vector2(0.42f, Mathf.Lerp(1.05f, 0.38f, p));
-            ballRt.anchorMax = new Vector2(0.58f, Mathf.Lerp(1.21f, 0.54f, p));
-            ballRt.localRotation = Quaternion.Euler(0f, 0f, p * 720f);
-            yield return null;
+            float heightFrac = screenAspect / texAspect;
+            float y = (1f - heightFrac) * 0.5f;
+            rt.anchorMin = new Vector2(0f, y);
+            rt.anchorMax = new Vector2(1f, y + heightFrac);
+        }
+        else
+        {
+            float widthFrac = texAspect / screenAspect;
+            float x = (1f - widthFrac) * 0.5f;
+            rt.anchorMin = new Vector2(x, 0f);
+            rt.anchorMax = new Vector2(x + widthFrac, 1f);
         }
 
-        yield return new WaitForSecondsRealtime(0.4f);
-        PlayCutsceneAudio(LevelCutsceneType.ClubDiscoBall, 2);
+        rt.offsetMin = rt.offsetMax = Vector2.zero;
+    }
 
-        t = 0f;
-        while (t < 0.6f)
+    static GameObject CreateDoorPanel(Transform parent, string name, Texture2D tex, bool leftHalf)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = rt.offsetMax = Vector2.zero;
+
+        if (tex != null)
         {
-            t += Time.unscaledDeltaTime;
-            ballRt.localScale = Vector3.one * (1f + t * 0.5f);
-            ballRt.localRotation = Quaternion.Euler(0f, 0f, 720f + t * 360f);
-            yield return null;
+            var raw = go.AddComponent<RawImage>();
+            raw.texture = tex;
+            raw.uvRect = leftHalf
+                ? new Rect(0f, 0f, 0.5f, 1f)
+                : new Rect(0.5f, 0f, 0.5f, 1f);
+            raw.raycastTarget = false;
+        }
+        else
+        {
+            var img = go.AddComponent<Image>();
+            img.color = new Color(0.9f, 0.9f, 0.88f, 1f);
+            img.raycastTarget = false;
         }
 
-        yield return FadeOut(root, 0.45f);
+        return go;
     }
 
     static GameObject CreatePanel(Transform parent, string name, Vector2 min, Vector2 max, Color color)
@@ -279,6 +342,28 @@ public static class LevelCutscenePlayer
         var stripe = CreatePanel(door, "WarningStripe",
             new Vector2(0.1f, 0.45f), new Vector2(0.9f, 0.55f), stripeColor);
         stripe.transform.SetAsLastSibling();
+    }
+
+    static IEnumerator FadeOutAllGraphics(GameObject root, float duration)
+    {
+        var graphics = root.GetComponentsInChildren<Graphic>();
+        float t = 0f;
+        var startAlphas = new float[graphics.Length];
+        for (int i = 0; i < graphics.Length; i++)
+            startAlphas[i] = graphics[i].color.a;
+
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+            float p = t / duration;
+            for (int i = 0; i < graphics.Length; i++)
+            {
+                var c = graphics[i].color;
+                c.a = Mathf.Lerp(startAlphas[i], 0f, p);
+                graphics[i].color = c;
+            }
+            yield return null;
+        }
     }
 
     static IEnumerator AnimateAnchors(RectTransform rt, Vector2 fromMin, Vector2 toMin, float duration)

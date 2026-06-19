@@ -21,6 +21,8 @@ public class SlowDownObstacle : MonoBehaviour
         var col = GetComponent<Collider>();
         if (col != null && !col.enabled) return;
 
+        AudioManager.Instance?.PlaySlowDownObstacleSfx();
+
         if (col != null) col.enabled = false;
         var mr = GetComponent<MeshRenderer>();
         if (mr != null) mr.enabled = false;

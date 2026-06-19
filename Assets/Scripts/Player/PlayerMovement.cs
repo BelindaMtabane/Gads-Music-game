@@ -2,12 +2,16 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    //Declare variables
     private CharacterController controller;
+    PickupBase _pickup;
+
+    public float baseForwardSpeed = 8f;
+    public float baseSidewaySpeed = 10f;
     public float sidewaySpeed = 10f;
-    public float forwardSpeed = 10f;
-    public float gravity = -9.81f;
+    public float forwardSpeed = 8f;
+    public float gravity = -20f;     // stronger gravity = snappier, less floaty jumps
     public float jumpHeight = 3f;
+    public float footGroundOffset = 0.08f;
 
     //Ground variables
     public Transform groundCheck;
@@ -25,7 +29,15 @@ public class PlayerMovement : MonoBehaviour
     private void Start()
     {
         controller = GetComponent<CharacterController>();
+        _pickup = GetComponent<PickupBase>();
+        forwardSpeed = baseForwardSpeed;
+        sidewaySpeed = baseSidewaySpeed;
         EnsureFootGroundCheck();
+        if (groundMask.value == 0)
+            groundMask = GroundPlacementUtility.DefaultGroundMask;
+
+        GroundPlacementUtility.SnapTransformFeetToGround(
+            transform, groundMask, footGroundOffset);
     }
 
     /// <summary>
@@ -70,8 +82,10 @@ public class PlayerMovement : MonoBehaviour
     {
         DidJumpThisFrame = false;
 
-        if (GameManager.GameStarted)
-            UICursor.LockForGameplay();
+        if (!enabled || !GameManager.GameStarted)
+            return;
+
+        UICursor.LockForGameplay();
 
         groundMask = Ground;
         UpdateGrounded();
@@ -95,5 +109,38 @@ public class PlayerMovement : MonoBehaviour
         velocity += gravity * Time.deltaTime;
         move.y = velocity;
         controller.Move(move * Time.deltaTime);
+
+        RecoverFromFall();
     }
+
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (!enabled || !GameManager.GameStarted || hit.collider == null) return;
+        _pickup?.HandleSolidContact(hit.collider);
+    }
+
+    void RecoverFromFall()
+    {
+        UpdateGrounded();
+        if (isGrounded) return;
+
+        Vector3 origin = transform.position + Vector3.up * 2f;
+        if (!Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 40f, groundMask, QueryTriggerInteraction.Ignore))
+            return;
+
+        float footY = hit.point.y + (controller != null
+            ? controller.height * 0.5f + controller.center.y + footGroundOffset
+            : 1f);
+
+        if (transform.position.y > footY + 0.35f)
+            return;
+
+        controller.enabled = false;
+        transform.position = new Vector3(transform.position.x, footY, transform.position.z);
+        controller.enabled = true;
+        velocity = -2f;
+    }
+    // AlignFeetToGround removed — it fought CharacterController's native ground
+    // detection each frame, causing the player to stutter and stop mid-run.
+    // The CharacterController isGrounded + gravity=-20 handles ground contact cleanly.
 }

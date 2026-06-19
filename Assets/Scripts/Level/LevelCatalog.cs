@@ -1,0 +1,148 @@
+using UnityEngine;
+
+[System.Serializable]
+public class LevelDefinition
+{
+    public int levelNumber = 1;
+    public string displayName = "Opera House";
+    public string codename = "Pulse Infiltration";
+    public string gameplayScene = "MainGameL1";
+    public string nextIntroScene = "Level2IntroScene";
+    public string briefingTitle = "Opera House Briefing";
+
+    public LevelCutsceneType gameplayCutscene = LevelCutsceneType.None;
+    public LevelCutsceneType introCutscene = LevelCutsceneType.None;
+
+    [TextArea(2, 4)]
+    public string briefingLine1 = "Target artifact confirmed beneath the stage.";
+    [TextArea(2, 4)]
+    public string briefingLine2 = "The guards respond to movement and sound. Stay sharp.";
+
+    [TextArea(2, 4)]
+    public string startHint1 = "Run! Collect two instruments before the guard catches you!";
+    [TextArea(2, 4)]
+    public string startHint2 = "Jump obstacles and grab power-ups along the way.";
+
+    // ── Movement ──────────────────────────────────────────────────────────────
+    public float forwardSpeed    = 5.5f;
+    public float guardSpeed      = 3f;
+    public float guardBoostSpeed = 22f;
+    public float runLookAhead    = 120f;
+
+    // ── Spawning ──────────────────────────────────────────────────────────────
+    public int   spawnCount      = 4;
+    public int   artifactsToWin  = 2;
+    public float artifactScale   = 2.0f;
+    public bool  spawnCurtains   = true;
+
+    // ── Difficulty ────────────────────────────────────────────────────────────
+    /// <summary>How many obstacle hits before death (shown on HUD as Shield).</summary>
+    public int   hitCount        = 10;
+    /// <summary>Player starting health for this level.</summary>
+    public int   startHealth     = 100;
+}
+
+public static class LevelCatalog
+{
+    // ── L1: Opera House — Easy ────────────────────────────────────────────────
+    // Low speed, few obstacles, all curtains, big visible artifacts.
+    // Guard is closer in speed ratio; players learn the controls.
+    static readonly LevelDefinition Level1 = new LevelDefinition
+    {
+        levelNumber      = 1,
+        displayName      = "Opera House",
+        codename         = "The Red Curtain Run",
+        gameplayScene    = "MainGameL1",
+        nextIntroScene   = "Level2IntroScene",
+        briefingTitle    = "Opera House — Level 1",
+        gameplayCutscene = LevelCutsceneType.OperaCurtain,
+        introCutscene    = LevelCutsceneType.None,
+        briefingLine1    = "The Conductors hid a legendary instrument behind the red curtains.",
+        briefingLine2    = "Infiltrate the opera hall. Collect two artifacts and escape the guard.",
+        startHint1       = "Pulse, the artifact is on this stage. Move with the music!",
+        startHint2       = "Collect two instruments. The guard is already hunting you.",
+        forwardSpeed     = 8.0f,     // Comfortable pace — feels like running, not jogging
+        guardSpeed       = 6.5f,     // Behind player at baseline; surges create danger
+        guardBoostSpeed  = 12f,      // Surge: guard at 12, player at 8 = 4 m/s close rate (fair)
+        runLookAhead     = 120f,
+        spawnCount       = 6,        // Denser course — more variety, still learnable
+        artifactsToWin   = 2,
+        artifactScale    = 1.0f,     // Natural size — visible without being overwhelming
+        spawnCurtains    = true,
+        hitCount         = 10,       // Generous — easy mode
+        startHealth      = 100,
+    };
+
+    // ── L2: Music Museum — Medium ─────────────────────────────────────────────
+    // More speed, more obstacles, museum security door cutscene.
+    // Guard pressure increases; rolling drums + alarms.
+    static readonly LevelDefinition Level2 = new LevelDefinition
+    {
+        levelNumber      = 2,
+        displayName      = "Music Museum",
+        codename         = "Hall of Echoes",
+        gameplayScene    = "MainGameL2",
+        nextIntroScene   = "Level3IntroScene",
+        briefingTitle    = "Music Museum — Level 2",
+        gameplayCutscene = LevelCutsceneType.MuseumSecurityDoor,   // cutscene now plays in-game
+        introCutscene    = LevelCutsceneType.MuseumSecurityDoor,
+        briefingLine1    = "Ancient instruments locked behind motion sensors and rolling drum traps.",
+        briefingLine2    = "The guards patrol tighter here. Two artifacts — extract before lockdown.",
+        startHint1       = "Museum security is heavier. Sneak pickups when you can.",
+        startHint2       = "Rolling drums and alarms ahead — jump clean and keep your rhythm.",
+        forwardSpeed     = 10.0f,    // Noticeably faster than L1
+        guardSpeed       = 8.5f,
+        guardBoostSpeed  = 16f,      // Surge: guard at 16, player at 10 = 6 m/s close rate
+        runLookAhead     = 150f,
+        spawnCount       = 8,        // Double the obstacles
+        artifactsToWin   = 2,
+        artifactScale    = 1.7f,
+        spawnCurtains    = false,
+        hitCount         = 7,        // Fewer lives
+        startHealth      = 100,
+    };
+
+    // ── L3: Underground Club — Hard ───────────────────────────────────────────
+    // Fastest speed, most obstacles, disco ball cutscene, tightest guard gap.
+    // Lasers and sound-wave traps demand fast reactions.
+    static readonly LevelDefinition Level3 = new LevelDefinition
+    {
+        levelNumber      = 3,
+        displayName      = "Underground Club",
+        codename         = "Neon Beat Vault",
+        gameplayScene    = "MainGameL3",
+        nextIntroScene   = "VictoryScene",
+        briefingTitle    = "Underground Club — Level 3",
+        gameplayCutscene = LevelCutsceneType.ClubDiscoBall,        // cutscene now plays in-game
+        introCutscene    = LevelCutsceneType.ClubDiscoBall,
+        briefingLine1    = "The artifact is hidden beneath the main DJ stage.",
+        briefingLine2    = "Guards move with the beat drops. Lasers and sound traps everywhere.",
+        startHint1       = "Final run — neon lights, maximum pressure. Stay on beat!",
+        startHint2       = "Collect two artifacts and escape before the club locks down.",
+        forwardSpeed     = 13.0f,    // Fastest — hard to control by design
+        guardSpeed       = 11.5f,
+        guardBoostSpeed  = 22f,      // Surge: guard at 22, player at 13 = 9 m/s close rate (hard)
+        runLookAhead     = 175f,
+        spawnCount       = 13,       // Most obstacles
+        artifactsToWin   = 2,
+        artifactScale    = 1.5f,
+        spawnCurtains    = false,
+        hitCount         = 5,        // Very few lives — punishing
+        startHealth      = 80,       // Lower HP — extra pressure
+    };
+
+    public static LevelDefinition Get(int level)
+    {
+        return level switch
+        {
+            3 => Level3,
+            2 => Level2,
+            _ => Level1
+        };
+    }
+
+    public static string GetGameplayScene(int level)
+    {
+        return Get(level).gameplayScene;
+    }
+}

@@ -4,105 +4,169 @@ public class EnemyBase : MonoBehaviour
 {
     //Declare variables
     public Transform player;
-    private float speed = 10f;
-    private float boostedSpeed = 34f;
-    private float speedBoostTime = 10f;
-    public float boostDuration = 10f;
-    public float timer;
+    private float speed = 7f;
+    private float baseSpeed = 7f;
+    private float boostedSpeed = 12f;   // overridden by LevelBootstrap; 12 = manageable surge
+    [Tooltip("When the player is slowed, guard speed = player speed + this margin.")]
+    public float catchUpMargin = 1f;
     private PickupBase pickupBase;
     private PlayerMovement playerMovement;
     public float followDistance = 1f;
-    private bool hasBoosted = false;
-    private bool _caughtPlayer = false;
+    public float groundOffset = 0.05f;
+    public float groundRayHeight = 6f;
+    public LayerMask groundMask;
+
+    private bool  _surging      = false;
+    private float _surgeTimer   = 0f;
+    private float _surgeDuration = 0f;
+    private bool  _caughtPlayer = false;
     private Collider _catchCollider;
+    private float _pivotToFeet;
 
     void Start()
     {
         //Assign scripts to be used in the enemy base script
-        player = GameObject.FindGameObjectWithTag("Player").transform;
-        playerMovement = player.GetComponent<PlayerMovement>();
-        pickupBase = player.GetComponent<PickupBase>();
-        pickupBase.currentHealth = 100;
-        //Check if the scripts are attached 
-        if (pickupBase == null)
-        {
-            Debug.LogError("PickupBase script not found on Player!");
-        }
-
-        if (playerMovement == null)
-        {
-            Debug.LogError("PlayerMovement script not found on Player!");
-        }
-
-        if (player == null)
+        var playerGO = GameObject.FindGameObjectWithTag("Player");
+        if (playerGO == null)
         {
             Debug.LogError("Player not found!");
+            return;
         }
+        player = playerGO.transform;
+        playerMovement = player.GetComponent<PlayerMovement>();
+        pickupBase = player.GetComponent<PickupBase>();
+
+        if (pickupBase == null)
+            Debug.LogError("PickupBase script not found on Player!");
+        // currentHealth is owned by LevelBootstrap — do NOT overwrite it here
+
+        if (playerMovement == null)
+            Debug.LogError("PlayerMovement script not found on Player!");
 
         _catchCollider = GetComponent<Collider>();
         if (_catchCollider == null)
             _catchCollider = GetComponentInChildren<Collider>();
         if (_catchCollider != null)
             _catchCollider.isTrigger = true;
+
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+
+        if (groundMask.value == 0)
+            groundMask = LayerMask.GetMask("Ground");
+
+        _pivotToFeet = ComputePivotToFeet();
+        SnapToGround(true);
     }
 
     void Update()
     {
-        //Increment the timer
-        timer += Time.deltaTime;
+        if (!GameManager.GameStarted)
+            return;
 
-        if (pickupBase != null && playerMovement != null)
+        // Surge timer — returns to base speed when surge expires
+        if (_surging)
         {
-            //Check if the timer reached the boost time and if the boost has not been applied yet
-            if (pickupBase.isSneaking || playerMovement.forwardSpeed == 20f || pickupBase.artifactAmount >= PickupBase.ArtifactsToWin)
+            _surgeTimer += Time.deltaTime;
+            if (_surgeTimer >= _surgeDuration)
             {
-                if (timer >= speedBoostTime && !hasBoosted)
-                {
-                    speed = boostedSpeed;
-
-                    Debug.Log("Security speed boosted to: " + speed);
-
-                    hasBoosted = true;
-                }
+                speed    = baseSpeed;
+                _surging = false;
+                Debug.Log("Guard surge ended — returning to base speed.");
             }
         }
-        //Return back to normal speed
-        if (timer >= boostDuration && hasBoosted)
-        {
-            speed = 10f;
 
-            hasBoosted = false;
-
-            timer = 0f;
-
-            Debug.Log("Security is in Normal Speed!");
-        }
-        //Calculate the target position to follow the player 
+        //Calculate the target position to follow the player
         Vector3 targetPosition = new Vector3(player.position.x, transform.position.y, player.position.z - followDistance);
 
+        float chaseSpeed = GetChaseSpeed();
+
         //Move toward player
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+        transform.position = Vector3.MoveTowards(transform.position, targetPosition, chaseSpeed * Time.deltaTime);
+        SnapToGround(false);
+    }
+
+    float GetChaseSpeed()
+    {
+        if (playerMovement != null &&
+            playerMovement.forwardSpeed < playerMovement.baseForwardSpeed - 0.1f)
+            return Mathf.Max(1f, playerMovement.forwardSpeed + catchUpMargin);
+
+        return speed;
+    }
+
+    private void SnapToGround(bool instant)
+    {
+        LayerMask mask = groundMask.value != 0 ? groundMask : LayerMask.GetMask("Ground");
+
+        Vector3 origin = transform.position + Vector3.up * groundRayHeight;
+        float maxDist = groundRayHeight + _pivotToFeet + 6f;
+        if (!Physics.Raycast(origin, Vector3.down, out RaycastHit hit, maxDist, mask, QueryTriggerInteraction.Ignore))
+            return;
+
+        float targetY = hit.point.y + _pivotToFeet;
+        if (instant || Mathf.Abs(transform.position.y - targetY) > 0.5f)
+            transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+        else if (Mathf.Abs(transform.position.y - targetY) > 0.02f)
+        {
+            float smoothY = Mathf.Lerp(transform.position.y, targetY, Mathf.Min(1f, 15f * Time.deltaTime));
+            transform.position = new Vector3(transform.position.x, smoothY, transform.position.z);
+        }
+    }
+
+    float ComputePivotToFeet()
+    {
+        return GroundPlacementUtility.GetPivotToFeet(transform, groundOffset);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player")) return;
+        if (!PlayerColliderUtility.IsPlayer(other)) return;
         CatchPlayer();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!collision.gameObject.CompareTag("Player")) return;
+        if (!PlayerColliderUtility.IsPlayer(collision.collider)) return;
         CatchPlayer();
     }
 
     private void CatchPlayer()
     {
         if (_caughtPlayer || pickupBase == null) return;
+        if (!GameManager.GameStarted) return;
         if (pickupBase.isSneaking) return;
 
         _caughtPlayer = true;
         Debug.Log("Security caught the player!");
-        pickupBase.KillPlayer();
+        pickupBase.KillPlayer(DeathCause.Guard);
+    }
+
+    public void ApplyLevelTuning(float normalSpeed, float boostSpeed)
+    {
+        baseSpeed    = normalSpeed;
+        speed        = normalSpeed;
+        boostedSpeed = boostSpeed;
+    }
+
+    public bool IsSurging     => _surging;
+    public float SurgeTimeLeft => _surging ? Mathf.Max(0f, _surgeDuration - _surgeTimer) : 0f;
+
+    /// <summary>
+    /// Called when the player collects their first artifact.
+    /// Guard surges to boostedSpeed for <duration> seconds to add tension.
+    /// </summary>
+    public void Surge(float duration)
+    {
+        if (_surging) return;   // already surging
+        speed         = boostedSpeed;
+        _surgeDuration = duration;
+        _surgeTimer   = 0f;
+        _surging      = true;
+        Debug.Log($"Guard surge! Speed → {boostedSpeed} for {duration}s.");
     }
 }

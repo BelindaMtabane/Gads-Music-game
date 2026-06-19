@@ -1035,9 +1035,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 074cfa0d7c0fbdd45985644ee7e1b531, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeathHUD
-  gameSceneName: MainGameL1
+  gameSceneName: MainGameL1Opera
   menuSceneName: StartScene
   titleText: {fileID: 0}
+  defeatReasonText: {fileID: 0}
+  artifactStatsText: {fileID: 0}
   retryButton: {fileID: 1556549060}
   mainMenuButton: {fileID: 263854804}
   nextButton: {fileID: 1232538851}
@@ -1141,7 +1143,7 @@ RectTransform:
   m_GameObject: {fileID: 931520188}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 275929161}
@@ -2365,6 +2367,9 @@ MonoBehaviour:
   sneakPickupSound: {fileID: 8300000, guid: 0534231466fdb8b4187afa63b122deb5, type: 3}
   speedPickupSound: {fileID: 8300000, guid: 612bb7e80a9de7f4bbc633da00cceb2f, type: 3}
   jumpPickupSound: {fileID: 8300000, guid: e3e37699a4e7fd244b7c1956606a841b, type: 3}
+  curtainCutsceneSound: {fileID: 0}
+  securityDoorSound: {fileID: 0}
+  discoBallSound: {fileID: 0}
   musicVolume: 0.5
   sfxVolume: 0.8
   narrativeVolume: 1

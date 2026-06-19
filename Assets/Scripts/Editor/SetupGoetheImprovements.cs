@@ -9,7 +9,7 @@ using TMPro;
 /// </summary>
 public static class SetupGoetheImprovements
 {
-    public const string MainGameScene = "Assets/Scenes/MainGameL1.unity";
+    public const string MainGameScene = GameplaySceneNames.L1Path;
 
     [MenuItem("Tools/Setup All Goethe Improvements")]
     public static void RunAll()

@@ -58,7 +58,7 @@ public class DeathHUD : MonoBehaviour
         GameOverOverlay.Hide();
         GameplayCanvasGuard.FixAllCanvasesInScene();
 
-        if (gameSceneName == "MainGameL1Opera" || string.IsNullOrEmpty(gameSceneName))
+        if (string.IsNullOrEmpty(gameSceneName) || GameplaySceneNames.IsGameplayScene(gameSceneName))
             gameSceneName = LevelProgress.GetGameplayScene();
 
         if (titleText != null)

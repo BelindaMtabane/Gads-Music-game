@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 /// </summary>
 public static class SetupPickupPedestals
 {
-    public const string MainGameScene = "Assets/Scenes/MainGameL1.unity";
+    public const string MainGameScene = GameplaySceneNames.L1Path;
 
     private const string PedestalName = "Pedestal";
 
@@ -32,7 +32,7 @@ public static class SetupPickupPedestals
     {
         foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None))
         {
-            if (go.scene.name != "MainGameL1") continue;
+            if (!GameplaySceneNames.IsGameplayScene(go.scene.name)) continue;
             if (go.name == objectName && go.transform.parent == null)
                 return go;
         }

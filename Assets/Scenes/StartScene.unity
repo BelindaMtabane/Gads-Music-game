@@ -846,6 +846,7 @@ GameObject:
   - component: {fileID: 176264693}
   - component: {fileID: 176264699}
   - component: {fileID: 176264700}
+  - component: {fileID: 176264701}
   m_Layer: 0
   m_Name: MainCanvas
   m_TagString: Untagged
@@ -865,7 +866,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 172a7a38de54a8c4db12c9427662bc28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StartSceneUI
-  gameSceneName: MainGameL1
+  gameSceneName: MainGameL1Opera
   menuPanel: {fileID: 1421044476}
   playButton: {fileID: 397774965}
   narrativeButton: {fileID: 1634464316}
@@ -1022,6 +1023,19 @@ MonoBehaviour:
   listenForEscape: 1
   requireGameStarted: 0
   showMainMenuButton: 0
+--- !u!114 &176264701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 176264692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 184890d97e3faa84985faa562f9523ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AIDialogueBootstrap
+  prefab: {fileID: 0}
 --- !u!1 &194733996
 GameObject:
   m_ObjectHideFlags: 0

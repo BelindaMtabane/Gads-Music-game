@@ -5,7 +5,7 @@ using TMPro;
 
 /// <summary>
 /// Level 2 / Level 3 intro briefing screens.
-/// After Level 1 victory → Level2Intro → MainGameL2.
+/// After Level 1 victory → Level2Intro → Level2Museum.
 /// </summary>
 public class LevelIntroScreenHUD : MonoBehaviour
 {

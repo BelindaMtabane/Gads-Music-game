@@ -6,7 +6,7 @@ public class LevelDefinition
     public int levelNumber = 1;
     public string displayName = "Opera House";
     public string codename = "Pulse Infiltration";
-    public string gameplayScene = "MainGameL1";
+    public string gameplayScene = GameplaySceneNames.L1Opera;
     public string nextIntroScene = "Level2IntroScene";
     public string briefingTitle = "Opera House Briefing";
 

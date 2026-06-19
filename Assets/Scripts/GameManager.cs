@@ -74,6 +74,7 @@ public class GameManager : MonoBehaviour
         _levelDef = def;
         if (def == null) return;
         levelNumber = def.levelNumber;
+        levelIntroSceneName = def.nextIntroScene;
         startNarration = new NarrationLine[]
         {
             new NarrationLine(def.startHint1),

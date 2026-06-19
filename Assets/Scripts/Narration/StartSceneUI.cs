@@ -125,7 +125,10 @@ public class StartSceneUI : MonoBehaviour
         LevelProgress.ResetToFirstLevel();
         if (_menuPaused) OnResume();
         AudioManager.Instance?.StopNarrative();
-        SceneFader.LoadScene(gameSceneName);
+        var scene = string.IsNullOrEmpty(gameSceneName) || GameplaySceneNames.IsGameplayScene(gameSceneName)
+            ? LevelCatalog.GetGameplayScene(1)
+            : gameSceneName;
+        SceneFader.LoadScene(scene);
     }
 
     public void OnPause()

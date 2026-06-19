@@ -6,63 +6,57 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Sets up Level 1 → 2 → 3 progression, cutscenes, and build settings.
+/// Sets up Level 1 → 2 → 3 progression, syncs gameplay from L1, and build settings.
 /// Run via Tools → Setup Level Progression (All Levels).
 /// </summary>
 public static class SetupLevelProgression
 {
-    const string L1Path = "Assets/Scenes/MainGameL1Opera.unity";
-    const string L2Path = "Assets/Scenes/Level2Museum.unity";
-    const string L3Path = "Assets/Scenes/Level3UndergroundDance.unity";
     const string L2IntroPath = "Assets/Scenes/Level2IntroScene.unity";
     const string L3IntroPath = "Assets/Scenes/Level3IntroScene.unity";
 
     [MenuItem("Tools/Setup Level Progression (All Levels)")]
     public static void SetupAll()
     {
-        EnsureSceneCopy(L1Path, L2Path, "MainGameL2");
-        EnsureSceneCopy(L2Path, L3Path, "MainGameL3");
-
-        WireGameplayScene(L1Path, 1);
-        WireGameplayScene(L2Path, 2);
-        WireGameplayScene(L3Path, 3);
-        WireLevelIntro(L2IntroPath, 2, "MainGameL2", "START LEVEL 2");
-        WireLevelIntro(L3IntroPath, 3, "MainGameL3", "START LEVEL 3");
-        UpdateBuildScenes();
+        SyncGameplayFromL1();
+        WireGameplayScene(GameplaySceneNames.L1Path, 1);
+        WireGameplayScene(GameplaySceneNames.L2Path, 2);
+        WireGameplayScene(GameplaySceneNames.L3Path, 3);
+        WireLevelIntro(L2IntroPath, 2, GameplaySceneNames.L2Museum, "START LEVEL 2");
+        WireLevelIntro(L3IntroPath, 3, GameplaySceneNames.L3Club, "START LEVEL 3");
+        SetupBuildScenes.Setup();
         EnsureAIDialogueInStartScene();
+        FixSceneReferencesInAssets();
 
         AssetDatabase.SaveAssets();
         EditorSceneManager.SaveOpenScenes();
-        Debug.Log("[LevelProgression] All 3 levels ready.\n" +
-                  "  Cutscenes: L1 Opera curtains (in-game) | L2 museum security door | L3 club disco ball\n" +
-                  "  Flow: Start → L1 → L2 Intro → L2 → L3 Intro → L3 → Victory");
+        Debug.Log("[LevelProgression] All 3 levels synced from L1 and wired.\n" +
+                  "  L1 → " + GameplaySceneNames.L1Opera + "\n" +
+                  "  L2 → " + GameplaySceneNames.L2Museum + "\n" +
+                  "  L3 → " + GameplaySceneNames.L3Club);
     }
 
-    [MenuItem("Tools/Setup Level Progression (L1 + L2)")]
-    public static void SetupL1L2() => SetupAll();
-
-    static void EnsureSceneCopy(string source, string dest, string label)
+    [MenuItem("Tools/Sync Gameplay Scenes From L1")]
+    public static void SyncGameplayFromL1()
     {
-        if (File.Exists(dest))
+        if (!File.Exists(GameplaySceneNames.L1Path))
         {
-            Debug.Log($"[LevelProgression] {label} already exists.");
+            Debug.LogError("[LevelProgression] Missing " + GameplaySceneNames.L1Path);
             return;
         }
 
-        if (!File.Exists(source))
-        {
-            Debug.LogError($"[LevelProgression] Missing source scene: {source}");
-            return;
-        }
-
-        if (!AssetDatabase.CopyAsset(source, dest))
-        {
-            Debug.LogError($"[LevelProgression] Failed to copy → {dest}");
-            return;
-        }
-
+        ForceCopyScene(GameplaySceneNames.L1Path, GameplaySceneNames.L2Path);
+        ForceCopyScene(GameplaySceneNames.L1Path, GameplaySceneNames.L3Path);
         AssetDatabase.Refresh();
-        Debug.Log($"[LevelProgression] Created {label}.");
+        Debug.Log("[LevelProgression] Copied L1 gameplay/UI into L2 and L3 (textures unchanged — swap materials per level).");
+    }
+
+    static void ForceCopyScene(string source, string dest)
+    {
+        if (!File.Exists(source))
+            return;
+
+        File.Copy(source, dest, overwrite: true);
+        Debug.Log($"[LevelProgression] {Path.GetFileName(source)} → {Path.GetFileName(dest)}");
     }
 
     static void WireGameplayScene(string scenePath, int level)
@@ -70,10 +64,13 @@ public static class SetupLevelProgression
         if (!File.Exists(scenePath)) return;
 
         var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+        var def = LevelCatalog.Get(level);
+
         var gm = Object.FindAnyObjectByType<GameManager>();
         if (gm != null)
         {
             gm.levelNumber = level;
+            gm.levelIntroSceneName = def.nextIntroScene;
             EditorUtility.SetDirty(gm);
         }
 
@@ -90,8 +87,10 @@ public static class SetupLevelProgression
         if (enemy != null && enemy.GetComponent<GuardDialogueController>() == null)
             enemy.gameObject.AddComponent<GuardDialogueController>();
 
+        FixGameplayCollision.FixOpenScene();
+
         EditorSceneManager.SaveScene(scene);
-        Debug.Log($"[LevelProgression] Wired {scenePath} as level {level}.");
+        Debug.Log($"[LevelProgression] Wired {scenePath} as level {level} ({def.displayName}).");
     }
 
     static void WireLevelIntro(string introPath, int level, string gameplayScene, string buttonLabel)
@@ -157,27 +156,42 @@ public static class SetupLevelProgression
         if (tmp != null) tmp.text = label;
     }
 
-    static void UpdateBuildScenes()
+    static void FixSceneReferencesInAssets()
     {
-        string[] scenes =
+        FixStartScene();
+        FixDeathScene();
+    }
+
+    static void FixStartScene()
+    {
+        const string path = "Assets/Scenes/StartScene.unity";
+        if (!File.Exists(path)) return;
+
+        var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+        var ui = Object.FindAnyObjectByType<StartSceneUI>();
+        if (ui != null)
         {
-            "Assets/Scenes/SplashScene.unity",
-            "Assets/Scenes/StartScene.unity",
-            "Assets/Scenes/MainGameL1.unity",
-            "Assets/Scenes/Level2IntroScene.unity",
-            "Assets/Scenes/MainGameL2.unity",
-            "Assets/Scenes/Level3IntroScene.unity",
-            "Assets/Scenes/MainGameL3.unity",
-            "Assets/Scenes/DeathScene.unity",
-            "Assets/Scenes/VictoryScene.unity",
-        };
+            ui.gameSceneName = GameplaySceneNames.L1Opera;
+            EditorUtility.SetDirty(ui);
+        }
 
-        var build = new EditorBuildSettingsScene[scenes.Length];
-        for (int i = 0; i < scenes.Length; i++)
-            build[i] = new EditorBuildSettingsScene(scenes[i], true);
+        EditorSceneManager.SaveScene(scene);
+    }
 
-        EditorBuildSettings.scenes = build;
-        Debug.Log("[LevelProgression] Build settings updated for all levels.");
+    static void FixDeathScene()
+    {
+        const string path = "Assets/Scenes/DeathScene.unity";
+        if (!File.Exists(path)) return;
+
+        var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+        var hud = Object.FindAnyObjectByType<DeathHUD>();
+        if (hud != null)
+        {
+            hud.gameSceneName = GameplaySceneNames.L1Opera;
+            EditorUtility.SetDirty(hud);
+        }
+
+        EditorSceneManager.SaveScene(scene);
     }
 
     static void EnsureAIDialogueInStartScene()

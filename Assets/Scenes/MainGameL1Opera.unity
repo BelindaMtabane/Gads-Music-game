@@ -7512,6 +7512,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9029418423421090231, guid: fb643e24e1f4b8343a936a6670bd85b8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1203217319}
+    - targetCorrespondingSourceObject: {fileID: 9029418423421090231, guid: fb643e24e1f4b8343a936a6670bd85b8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1203217321}
   m_SourcePrefab: {fileID: 100100000, guid: fb643e24e1f4b8343a936a6670bd85b8, type: 3}
 --- !u!4 &1203217317 stripped
 Transform:
@@ -7548,6 +7551,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25f3ed4ad1778d344bac88004aeff25e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBase
+--- !u!114 &1203217321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1203217318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42f9f061f8a11454c893c47bb90d1865, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GuardDialogueController
+  player: {fileID: 0}
+  speakerName: Security Guard
+  suspiciousDistance: 18
+  chaseDistance: 8
 --- !u!1 &1207637883
 GameObject:
   m_ObjectHideFlags: 0
@@ -9176,6 +9195,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1527630879}
   - component: {fileID: 1527630878}
+  - component: {fileID: 1527630880}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -9198,7 +9218,7 @@ MonoBehaviour:
   deathSceneName: DeathScene
   victorySceneName: VictoryScene
   levelIntroSceneName: Level2IntroScene
-  levelNumber: 0
+  levelNumber: 1
   countdownOverlay: {fileID: 1989970017}
   countdownText: {fileID: 1024918713}
   countdownSeconds: 3
@@ -9235,6 +9255,42 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1527630880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1527630877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96704fcc6b06f8e4985c1aacac85d0df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelBootstrap
+  levelNumber: 1
+  definition:
+    levelNumber: 1
+    displayName: Opera House
+    codename: Pulse Infiltration
+    gameplayScene: MainGameL1Opera
+    nextIntroScene: Level2IntroScene
+    briefingTitle: Opera House Briefing
+    gameplayCutscene: 0
+    introCutscene: 0
+    briefingLine1: Target artifact confirmed beneath the stage.
+    briefingLine2: The guards respond to movement and sound. Stay sharp.
+    startHint1: Run! Collect two instruments before the guard catches you!
+    startHint2: Jump obstacles and grab power-ups along the way.
+    forwardSpeed: 5.5
+    guardSpeed: 3
+    guardBoostSpeed: 22
+    runLookAhead: 120
+    spawnCount: 4
+    artifactsToWin: 2
+    artifactScale: 2
+    spawnCurtains: 1
+    hitCount: 10
+    startHealth: 100
 --- !u!1 &1533650137
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,14 +13,19 @@ public static class FixGameplayCollision
     public static void Run()
     {
         string sceneName = SceneManager.GetActiveScene().name;
-        if (!sceneName.StartsWith("MainGame"))
+        if (!GameplaySceneNames.IsGameplayScene(sceneName))
         {
-            Debug.LogWarning("[FixGameplayCollision] Open MainGameL1, L2, or L3 first.");
+            Debug.LogWarning("[FixGameplayCollision] Open a gameplay scene (L1 Opera, L2 Museum, or L3 Club) first.");
             return;
         }
 
-        int fixes = 0;
+        int fixes = FixOpenScene();
+        Debug.Log($"[FixGameplayCollision] Done — {fixes} fixes applied in {sceneName}.");
+    }
 
+    public static int FixOpenScene()
+    {
+        int fixes = 0;
         foreach (var root in SceneManager.GetActiveScene().GetRootGameObjects())
             fixes += FixHierarchy(root);
 
@@ -29,30 +34,22 @@ public static class FixGameplayCollision
             fixes += FixPlayerPickupTrigger(player);
 
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        EditorSceneManager.SaveOpenScenes();
-        Debug.Log($"[FixGameplayCollision] Done — {fixes} fixes applied in {sceneName}.");
+        return fixes;
     }
 
     [MenuItem("Tools/Fix Gameplay Collision (All Levels)")]
     public static void RunAllLevels()
     {
-        string[] scenes =
-        {
-            "Assets/Scenes/MainGameL1.unity",
-            "Assets/Scenes/MainGameL2.unity",
-            "Assets/Scenes/MainGameL3.unity",
-        };
-
         int total = 0;
-        foreach (var path in scenes)
+        foreach (var path in GameplaySceneNames.AllPaths)
         {
             if (!System.IO.File.Exists(path)) continue;
             EditorSceneManager.OpenScene(path);
-            Run();
-            total++;
+            total += FixOpenScene();
+            EditorSceneManager.SaveOpenScenes();
         }
 
-        Debug.Log($"[FixGameplayCollision] Updated {total} MainGame scenes.");
+        Debug.Log($"[FixGameplayCollision] Updated {total} fix passes across gameplay scenes.");
     }
 
     static int FixHierarchy(GameObject root)

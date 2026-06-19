@@ -11,7 +11,7 @@ public static class SetupCurtainObstacle
     public const string TexturePath = "Assets/Materials/Textures/curtain_texture.png";
     public const string MaterialPath = "Assets/Materials/Curtain.mat";
     public const string PrefabPath = "Assets/prefab/Curtain.prefab";
-    public const string MainGameScene = "Assets/Scenes/MainGameL1.unity";
+    public const string MainGameScene = GameplaySceneNames.L1Path;
 
     private static readonly Vector3 SpawnCurtainScale = new Vector3(7.5f, 6f, 0.45f);
 

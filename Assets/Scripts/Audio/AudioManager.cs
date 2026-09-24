@@ -22,10 +22,10 @@ public class AudioManager : MonoBehaviour
     // ── Clips (assign in Inspector or via Setup Audio editor tool) ────────────
     [Header("Audio Clips")]
     public AudioClip backgroundMusic;   // L1 — Morning_on_the_Plateau.mp3
-    [Tooltip("Original Opera House track, used as the start-menu music.")]
+    [Tooltip("Start menu and main-menu bed. Sunlight in the Great Hall.")]
     public AudioClip startMenuMusic;
     public AudioClip level2Music;       // L2 — Sunlight_in_the_Great_Hall.mp3
-    public AudioClip level3Music;       // L3 — level3GameSound.mp3
+    public AudioClip level3Music;       // L3 — Feet_Against_the_Earth.mp3
     public AudioClip buttonSound;       // button_sound.mp3
     public AudioClip countdownSound;    // count_down_sound.mp3
     public AudioClip victorySound;      // game_victory_sound.mp3

@@ -17,7 +17,7 @@ public class MusicBeatClock : MonoBehaviour
     {
         new TrackTempo { clipName = "Morning_on_the_Plateau", bpm = 92f, offsetSeconds = 0.174f },
         new TrackTempo { clipName = "Sunlight_in_the_Great_Hall", bpm = 89f, offsetSeconds = 0.205f },
-        new TrackTempo { clipName = "level3GameSound", bpm = 123f, offsetSeconds = 0.279f },
+        new TrackTempo { clipName = "Feet_Against_the_Earth", bpm = 123f, offsetSeconds = 0.279f },
     };
 
     /// <summary>1 on the beat, then falls back to 0 before the next beat.</summary>

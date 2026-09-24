@@ -2356,15 +2356,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
   backgroundMusic: {fileID: 8300000, guid: c4e8a17b9d2f46e0b5a3c8d1f704e296, type: 3}
-  startMenuMusic: {fileID: 8300000, guid: 0a286b0fc099f7d4bb682999fa3f2cf2, type: 3}
+  startMenuMusic: {fileID: 8300000, guid: b8e4c21f0a6d4e3b9c7a1d5f2e8b6041, type: 3}
   level2Music: {fileID: 8300000, guid: b8e4c21f0a6d4e3b9c7a1d5f2e8b6041, type: 3}
-  level3Music: {fileID: 8300000, guid: 54ef6b46e0a2510499e5b107f5920de4, type: 3}
+  level3Music: {fileID: 8300000, guid: e7b4c91a2d6f4e8b9c3a1f5d0e8b7042, type: 3}
   buttonSound: {fileID: 8300000, guid: dbece0e01d0dee1488dd6dbd40ebb9f4, type: 3}
   countdownSound: {fileID: 8300000, guid: 10c49b7c08f02794a925c9d90a8fba3f, type: 3}
   victorySound: {fileID: 8300000, guid: eb04077781874104bb752c0f0c75ef89, type: 3}
   gameOverSound: {fileID: 8300000, guid: 066bb5137eab0cf48b6d27c5edda7391, type: 3}
   narrativeSound: {fileID: 8300000, guid: 464fa68b7f4a53b4ea3c1a9b761d4293, type: 3}
-  backgroundMusicLayer: {fileID: 8300000, guid: 0a286b0fc099f7d4bb682999fa3f2cf2, type: 3}
+  backgroundMusicLayer: {fileID: 8300000, guid: b8e4c21f0a6d4e3b9c7a1d5f2e8b6041, type: 3}
   artifactPickupSound: {fileID: 8300000, guid: fd72e39cf2406244095efca37e25efb0, type: 3}
   healthPickupSound: {fileID: 8300000, guid: 5501435c538a26848832257896485f71, type: 3}
   sneakPickupSound: {fileID: 8300000, guid: 0534231466fdb8b4187afa63b122deb5, type: 3}

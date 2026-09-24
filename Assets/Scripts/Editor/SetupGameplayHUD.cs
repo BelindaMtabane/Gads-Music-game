@@ -55,7 +55,7 @@ public static class SetupGameplayHUD
             size:            new Vector2(360f, leftHeight));
 
         var vibeText     = MakeRow(leftRT, "VibeRow",     "Icon_Energy.png.png",  0, "Vibe");
-        var shieldText   = MakeRow(leftRT, "ShieldRow",   "Icon_Shield.png.png",  1, "Shield");
+        var shieldText   = MakeRow(leftRT, "ShieldRow",   "Icon_Shield.png.png",  1, "Headphones");
         var artifactText = MakeRow(leftRT, "ArtifactRow", "Icon_Trophy.png.png",  2, "Artifacts");
         var guardText    = MakeRow(leftRT, "GuardRow",    "Icon_Drone.png.png",   3, "Guard");
         var boostText    = MakeRow(leftRT, "BoostRow",    "Icon_Boost.png.png",   4, "Boost");

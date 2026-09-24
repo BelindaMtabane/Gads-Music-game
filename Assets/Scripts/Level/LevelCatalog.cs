@@ -32,13 +32,15 @@ public class LevelDefinition
     // ── Spawning ──────────────────────────────────────────────────────────────
     public int   spawnCount      = 4;
     public int   artifactsToWin  = 2;
+    /// <summary>HUD name for this level's goal item. The count format stays the same.</summary>
+    public string collectibleName = "Artifacts";
     public float artifactScale   = 2.0f;
     public bool  spawnCurtains   = true;
     /// <summary>Spawn a guaranteed artifact on every Nth ground segment. 1 = every segment.</summary>
     public int   artifactEverySegments = 1;
 
     // ── Difficulty ────────────────────────────────────────────────────────────
-    /// <summary>How many obstacle hits before death (shown on HUD as Shield).</summary>
+    /// <summary>Headphone shields the player starts with. Each hit spends one.</summary>
     public int   hitCount        = 10;
     /// <summary>Player starting health for this level.</summary>
     public int   startHealth     = 100;
@@ -60,16 +62,17 @@ public static class LevelCatalog
         gameplayCutscene = LevelCutsceneType.OperaCurtain,
         introCutscene    = LevelCutsceneType.None,
         briefingLine1    = "The Conductors hid a legendary instrument behind the red curtains.",
-        briefingLine2    = "Infiltrate the opera hall. Collect two artifacts and escape the guard.",
+        briefingLine2    = "Two artifacts are hidden in the hall. Collect both and escape the guard.",
         startHint1       = "Pulse, run to the rhythm. Two gold artifacts are on this stage.",
-        startHint2       = "Gold piano keys are safe to run. Jump the red keys — a wrong note slows you for 10 seconds.",
+        startHint2       = "Each piano row leaves 2, 3, or 4 white lanes. Walk any white one. A red lane makes the guard faster.",
+        collectibleName  = "Instruments",
         forwardSpeed     = 8.0f,
         guardSpeed       = 6.5f,
         guardBoostSpeed  = 12f,
         runLookAhead     = 140f,
         spawnCount       = 5,
         artifactsToWin   = 2,
-        artifactScale    = 1.45f,
+        artifactScale    = 1f,
         spawnCurtains    = true,
         artifactEverySegments = 2,
         hitCount         = 10,       // Generous — easy mode
@@ -90,16 +93,17 @@ public static class LevelCatalog
         gameplayCutscene = LevelCutsceneType.MuseumSecurityDoor,
         introCutscene    = LevelCutsceneType.None,
         briefingLine1    = "Lasers, piano keys, and guitar strings fill the museum hall.",
-        briefingLine2    = "The guards patrol tighter here. Two artifacts — extract before lockdown.",
+        briefingLine2    = "Collect five Oscar awards and get out before lockdown.",
         startHint1       = "Jump the red lasers. Press G to dodge under the guitar strings.",
-        startHint2       = "Gold piano keys are safe to run. Jump the red keys — a wrong note slows you.",
+        startHint2       = "Five awards win the level. White piano lanes are safe. Red lanes make the guard faster.",
         forwardSpeed     = 10.0f,    // Noticeably faster than L1
         guardSpeed       = 8.5f,
         guardBoostSpeed  = 16f,      // Surge: guard at 16, player at 10 = 6 m/s close rate
         runLookAhead     = 150f,
         spawnCount       = 8,        // Double the obstacles
-        artifactsToWin   = 2,
-        artifactScale    = 1.7f,
+        artifactsToWin   = 5,
+        collectibleName  = "Oscars",
+        artifactScale    = 1f,
         spawnCurtains    = false,
         hitCount         = 7,        // Fewer lives
         startHealth      = 100,
@@ -119,16 +123,17 @@ public static class LevelCatalog
         gameplayCutscene = LevelCutsceneType.ClubDiscoBall,
         introCutscene    = LevelCutsceneType.None,
         briefingLine1    = "The artifact is hidden beneath the main DJ stage.",
-        briefingLine2    = "Rolling mics, trumpet note beams, and a dancing crowd fill the floor.",
+        briefingLine2    = "Collect nine vinyl records and escape before the club locks down.",
         startHint1       = "Press G to dodge the trumpet beams. A hit slows you down.",
-        startHint2       = "Dancers block a lane. Running into them can cost an artifact.",
+        startHint2       = "Nine vinyl records win the level. Dancers can take one if you touch them.",
         forwardSpeed     = 13.0f,    // Fastest — hard to control by design
         guardSpeed       = 11.5f,
         guardBoostSpeed  = 22f,      // Surge: guard at 22, player at 13 = 9 m/s close rate (hard)
         runLookAhead     = 175f,
         spawnCount       = 13,       // Most obstacles
-        artifactsToWin   = 2,
-        artifactScale    = 1.5f,
+        artifactsToWin   = 9,
+        collectibleName  = "Vinyls",
+        artifactScale    = 1f,
         spawnCurtains    = false,
         hitCount         = 5,        // Very few lives — punishing
         startHealth      = 80,       // Lower HP — extra pressure

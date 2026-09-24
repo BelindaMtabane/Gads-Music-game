@@ -24,7 +24,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip backgroundMusic;   // L1 — Morning_on_the_Plateau.mp3
     [Tooltip("Original Opera House track, used as the start-menu music.")]
     public AudioClip startMenuMusic;
-    public AudioClip level2Music;       // L2 — level2museumSound.mp3
+    public AudioClip level2Music;       // L2 — Sunlight_in_the_Great_Hall.mp3
     public AudioClip level3Music;       // L3 — level3GameSound.mp3
     public AudioClip buttonSound;       // button_sound.mp3
     public AudioClip countdownSound;    // count_down_sound.mp3
@@ -65,29 +65,41 @@ public class AudioManager : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────────
     private void Awake()
     {
-        // Singleton — persist across scenes so music doesn't cut out
+        var existingSources = GetComponents<AudioSource>();
+        for (int i = 0; i < existingSources.Length; i++)
+        {
+            if (existingSources[i] == null) continue;
+            existingSources[i].playOnAwake = false;
+        }
+
+        // A copy ships in every scene. Only the first one may play, otherwise
+        // the Opera clip on those copies keeps sounding after the scene changes.
         if (Instance != null && Instance != this)
         {
+            enabled = false;
+            StopSources(existingSources);
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Build three AudioSource components
-        _musicSource     = GetComponent<AudioSource>();
+        _musicSource      = existingSources.Length > 0 ? existingSources[0] : gameObject.AddComponent<AudioSource>();
         _musicLayerSource = gameObject.AddComponent<AudioSource>();
-        _sfxSource       = gameObject.AddComponent<AudioSource>();
-        _narrativeSource = gameObject.AddComponent<AudioSource>();
+        _sfxSource        = gameObject.AddComponent<AudioSource>();
+        _narrativeSource  = gameObject.AddComponent<AudioSource>();
 
         _musicSource.loop        = true;
         _musicSource.volume      = musicVolume;
         _musicSource.playOnAwake = false;
+        _musicSource.spatialBlend = 0f;
 
         _musicLayerSource.loop        = true;
         _musicLayerSource.volume      = musicVolume * 0.35f;
         _musicLayerSource.playOnAwake = false;
         _musicLayerSource.pitch       = 1.02f;
+        _musicLayerSource.spatialBlend = 0f;
 
         _sfxSource.loop        = false;
         _sfxSource.volume      = sfxVolume;
@@ -107,8 +119,16 @@ public class AudioManager : MonoBehaviour
         if (GetComponent<MusicBeatClock>() == null)
             gameObject.AddComponent<MusicBeatClock>();
 
-        // Auto-play music based on starting scene
         AutoPlayForScene(SceneManager.GetActiveScene().name);
+    }
+
+    static void StopSources(AudioSource[] sources)
+    {
+        for (int i = 0; i < sources.Length; i++)
+        {
+            if (sources[i] != null && sources[i].isPlaying)
+                sources[i].Stop();
+        }
     }
 
     public AudioSource MusicSource => _musicSource;
@@ -121,40 +141,58 @@ public class AudioManager : MonoBehaviour
 
     private void OnEnable()
     {
+        if (Instance != this) return;
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
+        if (Instance != this) return;
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, LoadSceneMode mode)
     {
+        if (Instance != this) return;
         AutoPlayForScene(scene.name);
     }
 
     // ── Auto-play logic per scene ─────────────────────────────────────────────
     private void AutoPlayForScene(string sceneName)
     {
+        if (_musicSource == null) return;
+
         _musicSource.Stop();
         if (_musicLayerSource != null)
             _musicLayerSource.Stop();
-        _narrativeSource.Stop();
+        if (_narrativeSource != null)
+            _narrativeSource.Stop();
+        // Drops the victory one-shot of the Opera track, which otherwise
+        // keeps playing on the SFX source after the scene changes.
+        if (_sfxSource != null)
+            _sfxSource.Stop();
+
+        SilenceOperaClipOutsideOpera(sceneName);
 
         switch (sceneName)
         {
             case "StartScene":
-                PlayBackground(startMenuMusic != null ? startMenuMusic : backgroundMusic, useMusicLayer: false);
+                PlayBackground(startMenuMusic, useMusicLayer: false);
                 break;
 
             case "MainGameL1Opera":
-                PlayBackground(GetClipForScene(sceneName), useMusicLayer: false);
+            case "MainGameL1":
+                PlayBackground(backgroundMusic, useMusicLayer: false);
                 break;
 
             case "Level2Museum":
+            case "MainGameL2":
+                PlayBackground(level2Music, useMusicLayer: false);
+                break;
+
             case "Level3UndergroundDance":
-                PlayBackground(GetClipForScene(sceneName), useMusicLayer: false);
+            case "MainGameL3":
+                PlayBackground(level3Music, useMusicLayer: false);
                 break;
 
             case "Level2IntroScene":
@@ -171,21 +209,35 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // ── Public API ────────────────────────────────────────────────────────────
-
-    AudioClip GetClipForScene(string sceneName)
+    static bool IsOperaScene(string sceneName)
     {
-        return sceneName switch
+        return sceneName is "MainGameL1Opera" or "MainGameL1";
+    }
+
+    /// <summary>
+    /// Morning on the Plateau is the Opera House loop only. Stop any other
+    /// source that still has that clip after a scene change.
+    /// </summary>
+    void SilenceOperaClipOutsideOpera(string sceneName)
+    {
+        if (IsOperaScene(sceneName) || backgroundMusic == null) return;
+
+        var sources = FindObjectsByType<AudioSource>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < sources.Length; i++)
         {
-            "Level2Museum" => level2Music != null ? level2Music : backgroundMusic,
-            "Level3UndergroundDance" => level3Music != null ? level3Music : backgroundMusic,
-            _ => backgroundMusic
-        };
+            var src = sources[i];
+            if (src == null || src.clip != backgroundMusic) continue;
+            if (src == _musicSource) continue;
+            src.Stop();
+            src.clip = null;
+        }
     }
 
     public void PlayBackground()
     {
-        PlayBackground(backgroundMusic, useMusicLayer: true);
+        var scene = SceneManager.GetActiveScene().name;
+        if (!IsOperaScene(scene)) return;
+        PlayBackground(backgroundMusic, useMusicLayer: false);
     }
 
     public void PlayBackground(AudioClip clip, bool useMusicLayer)
@@ -219,9 +271,6 @@ public class AudioManager : MonoBehaviour
         _musicSource.volume = musicVolume;
         _musicSource.loop   = false;
         _musicSource.Play();
-
-        if (backgroundMusic != null)
-            _sfxSource.PlayOneShot(backgroundMusic, musicVolume * 0.2f);
     }
 
     public void PlayGameOver()

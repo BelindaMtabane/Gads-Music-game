@@ -207,14 +207,56 @@ public class GameManager : MonoBehaviour
 
         GameStarted = true;
         RunStats.MarkRunStart();
+        if (ActiveLevel == 1)
+            OperaTutorial.Show();
         if (playerMovement != null) playerMovement.enabled = true;
         if (enemyBase      != null) enemyBase.enabled      = true;
 
         FindAnyObjectByType<RunLengthController>()?.PopulatePickupsForRun();
     }
 
+    /// <summary>
+    /// Opera art has a dark margin. Scale it past the edges so the curtain fills
+    /// the screen, and park the countdown in the middle of the orange panel.
+    /// </summary>
+    void FitCountdownBackdrop()
+    {
+        if (countdownOverlay != null)
+        {
+            var rt = countdownOverlay.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+                rt.anchoredPosition = Vector2.zero;
+                // Level 1 art is inset. A uniform scale keeps the panel symmetrical
+                // and pushes the dark border off the screen.
+                float cover = ActiveLevel == 1 ? 1.38f : 1f;
+                rt.localScale = new Vector3(cover, cover, 1f);
+            }
+
+            var img = countdownOverlay.GetComponent<UnityEngine.UI.Image>();
+            if (img != null)
+                img.preserveAspect = false;
+        }
+
+        if (countdownText == null) return;
+        var textRt = countdownText.rectTransform;
+        textRt.anchorMin = new Vector2(0.28f, 0.26f);
+        textRt.anchorMax = new Vector2(0.72f, 0.62f);
+        textRt.pivot = new Vector2(0.5f, 0.5f);
+        textRt.offsetMin = Vector2.zero;
+        textRt.offsetMax = Vector2.zero;
+        textRt.anchoredPosition = Vector2.zero;
+    }
+
     IEnumerator PlayVisibleCountdown()
     {
+        FitCountdownBackdrop();
+
         if (countdownOverlay != null)
         {
             countdownOverlay.SetActive(true);
@@ -227,6 +269,7 @@ public class GameManager : MonoBehaviour
             countdownText.fontSize = 96f;
             countdownText.fontStyle = FontStyles.Bold;
             countdownText.alignment = TextAlignmentOptions.Center;
+            countdownText.verticalAlignment = VerticalAlignmentOptions.Middle;
             countdownText.color = new Color(0.83f, 0.69f, 0.22f, 1f);
         }
 
@@ -354,7 +397,7 @@ public class GameManager : MonoBehaviour
         PickupBase pickup = playerMovement != null
             ? playerMovement.GetComponent<PickupBase>()
             : null;
-        if (pickup != null && pickup.artifactAmount < PickupBase.ArtifactsToWin)
+        if (pickup != null && pickup.artifactAmount < PickupBase.RequiredToWin)
             return;
 
         _victoryTriggered = true;

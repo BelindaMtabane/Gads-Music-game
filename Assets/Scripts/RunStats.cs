@@ -13,6 +13,8 @@ public static class RunStats
 {
     public static int        ArtifactsCollected { get; private set; }
     public static int        ArtifactMoney      { get; private set; }
+    public static int        Vibe               { get; private set; }
+    public static int        Score              { get; private set; }
     public static float      RunTime            { get; private set; }  // seconds
     public static DeathCause LastDeathCause     { get; private set; } = DeathCause.Unknown;
 
@@ -41,11 +43,15 @@ public static class RunStats
         {
             ArtifactsCollected = 0;
             ArtifactMoney      = 0;
+            Vibe               = 0;
+            Score              = 0;
             return;
         }
 
         ArtifactsCollected = pickup.artifactAmount;
         ArtifactMoney      = pickup.artifactMoneyTotal;
+        Vibe               = pickup.Vibe;
+        Score              = pickup.RunScore;
     }
 
     public static string GetCauseHeadline()
@@ -90,6 +96,12 @@ public static class RunStats
         };
     }
 
+    static string CollectibleName()
+    {
+        var def = LevelCatalog.Get(LevelProgress.CurrentLevel);
+        return string.IsNullOrEmpty(def.collectibleName) ? "Artifacts" : def.collectibleName;
+    }
+
     static string FormatTime(float seconds)
     {
         int m = (int)(seconds / 60);
@@ -100,13 +112,14 @@ public static class RunStats
     public static string FormatScoreSummary()
     {
         string time = RunTime > 0f ? $"\nTime: {FormatTime(RunTime)}" : "";
-        return $"Artifacts: {ArtifactsCollected} / {PickupBase.ArtifactsToWin}\n" +
-               $"Value: ${ArtifactMoney:N0}{time}";
+        return $"Score: {Score:N0}\n" +
+               $"Vibe: {Vibe:N0}\n" +
+               $"{CollectibleName()}: {ArtifactsCollected} / {PickupBase.RequiredToWin}{time}";
     }
 
     public static string FormatRunSummaryLine()
     {
         string time = RunTime > 0f ? $"   |   {FormatTime(RunTime)}" : "";
-        return $"Artifacts: {ArtifactsCollected} / {PickupBase.ArtifactsToWin}   |   ${ArtifactMoney:N0}{time}";
+        return $"Score: {Score:N0}   |   Vibe: {Vibe:N0}   |   {CollectibleName()}: {ArtifactsCollected} / {PickupBase.RequiredToWin}{time}";
     }
 }

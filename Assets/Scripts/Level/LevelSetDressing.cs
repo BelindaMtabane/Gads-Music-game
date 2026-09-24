@@ -85,51 +85,73 @@ public class LevelSetDressing : MonoBehaviour
                 : _player.position.y;
         }
 
-        Material ivory = CreateLitMaterial(new Color(0.94f, 0.92f, 0.87f));
-        Material goldKey = CreateLitMaterial(new Color(1f, 0.82f, 0.28f), emissive: true);
-        Material redKey = CreateLitMaterial(new Color(0.85f, 0.08f, 0.1f), emissive: true);
-        Material gapMat = CreateLitMaterial(new Color(0.08f, 0.07f, 0.07f));
+        Material ivory = CreateLitMaterial(Color.white, emissive: true);
+        Material redKey = CreateLitMaterial(new Color(0.72f, 0.08f, 0.1f), emissive: true);
+        Material blackKey = CreateLitMaterial(new Color(0.04f, 0.04f, 0.045f));
+        Material wood = CreateLitMaterial(Color.white, emissive: true);
 
         float z = startZ + 52f;
         for (int phrase = 0; phrase < 2; phrase++)
         {
             int notes = Random.Range(2, 5);
-            z = BuildPianoPhrase(footY, z, notes, 8.5f, ivory, goldKey, redKey, gapMat);
+            z = BuildPianoPhrase(footY, z, notes, 8.5f, ivory, redKey, blackKey, wood, 2, 4);
             z += 46f;
         }
     }
 
-    float BuildPianoPhrase(float footY, float z, int notes, float rowStep, Material ivory, Material goldKey, Material redKey, Material gapMat)
+    float BuildPianoPhrase(float footY, float z, int notes, float rowStep, Material ivory, Material redKey, Material blackKey, Material wood, int minOpen, int maxOpen)
     {
         const float trackHalf = 12.5f;
         const int keyCount = 4;
         float keyWidth = (trackHalf * 2f) / keyCount;
-        const float rowDepth = 3.2f;
+        const float rowDepth = 4.6f;
 
         for (int note = 0; note < notes; note++)
         {
-            bool[] correct = RandomCorrectKeys();
+            bool[] open = RandomOpenLanes(minOpen, maxOpen);
+            float backZ = z + rowDepth * 0.22f;
+
+            var rail = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            rail.name = "PianoRail";
+            rail.transform.SetParent(_root, false);
+            rail.transform.position = new Vector3(0f, footY + 0.08f, z + rowDepth * 0.5f - 0.12f);
+            rail.transform.localScale = new Vector3(trackHalf * 2f + 0.4f, 0.16f, 0.22f);
+            ApplyMat(rail, wood);
+            DestroyCollider(rail);
+
             for (int i = 0; i < keyCount; i++)
             {
                 float minX = -trackHalf + i * keyWidth;
                 float centerX = minX + keyWidth * 0.5f;
-                bool safe = correct[i];
+                bool safe = open[i];
+                Material keyMat = safe ? ivory : redKey;
 
                 var key = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                key.name = safe ? "PianoKeySafe" : "PianoKeyJump";
+                key.name = safe ? "PianoKeyOpen" : "PianoKeyClosed";
                 key.transform.SetParent(_root, false);
-                key.transform.position = new Vector3(centerX, footY + 0.035f, z);
-                key.transform.localScale = new Vector3(keyWidth - 0.16f, 0.06f, rowDepth);
-                ApplyMat(key, ivory);
+                key.transform.position = new Vector3(centerX, footY + 0.04f, z);
+                key.transform.localScale = new Vector3(keyWidth - 0.1f, 0.07f, rowDepth);
+                ApplyMat(key, keyMat);
                 DestroyCollider(key);
 
-                var highlight = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                highlight.name = safe ? "PianoHighlightRun" : "PianoHighlightJump";
-                highlight.transform.SetParent(_root, false);
-                highlight.transform.position = new Vector3(centerX, footY + 0.08f, z - rowDepth * 0.28f);
-                highlight.transform.localScale = new Vector3(keyWidth - 0.28f, 0.05f, rowDepth * 0.34f);
-                ApplyMat(highlight, safe ? goldKey : redKey);
-                DestroyCollider(highlight);
+                var front = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                front.name = "PianoKeyFront";
+                front.transform.SetParent(_root, false);
+                front.transform.position = new Vector3(centerX, footY + 0.055f, z - rowDepth * 0.32f);
+                front.transform.localScale = new Vector3(keyWidth - 0.16f, 0.035f, rowDepth * 0.34f);
+                ApplyMat(front, keyMat);
+                DestroyCollider(front);
+
+                if (i < keyCount - 1 && BlackKeyInGap(i, note))
+                {
+                    var black = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    black.name = "PianoBlackKey";
+                    black.transform.SetParent(_root, false);
+                    black.transform.position = new Vector3(minX + keyWidth, footY + 0.1f, backZ);
+                    black.transform.localScale = new Vector3(keyWidth * 0.42f, 0.08f, rowDepth * 0.52f);
+                    ApplyMat(black, blackKey);
+                    DestroyCollider(black);
+                }
 
                 var trigger = new GameObject("PianoKeyTrigger");
                 trigger.transform.SetParent(_root, false);
@@ -141,17 +163,6 @@ public class LevelSetDressing : MonoBehaviour
                 piano.correct = safe;
                 piano.minX = minX;
                 piano.maxX = minX + keyWidth;
-
-                if (i < keyCount - 1)
-                {
-                    var gap = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    gap.name = "PianoGap";
-                    gap.transform.SetParent(_root, false);
-                    gap.transform.position = new Vector3(minX + keyWidth, footY + 0.02f, z);
-                    gap.transform.localScale = new Vector3(0.12f, 0.04f, rowDepth);
-                    ApplyMat(gap, gapMat);
-                    DestroyCollider(gap);
-                }
             }
 
             z += rowStep;
@@ -160,19 +171,28 @@ public class LevelSetDressing : MonoBehaviour
         return z;
     }
 
-    static bool[] RandomCorrectKeys()
+    static bool BlackKeyInGap(int gap, int row)
     {
-        var correct = new bool[4];
-        int safeCount = Random.Range(1, 4);
-        while (safeCount > 0)
+        // Two groups, like a real keyboard: 2 black keys, then 3.
+        if (row % 2 == 0)
+            return gap == 0 || gap == 1;
+        return gap <= 2;
+    }
+
+    static bool[] RandomOpenLanes(int minOpen, int maxOpen)
+    {
+        var open = new bool[4];
+        int openCount = Random.Range(minOpen, maxOpen + 1);
+        openCount = Mathf.Clamp(openCount, 1, 4);
+        while (openCount > 0)
         {
             int index = Random.Range(0, 4);
-            if (correct[index])
+            if (open[index])
                 continue;
-            correct[index] = true;
-            safeCount--;
+            open[index] = true;
+            openCount--;
         }
-        return correct;
+        return open;
     }
 
     void BuildOperaExit(float wallZ, Color gold, Material curtainMat, Material goldMat, Material darkMat)
@@ -356,13 +376,13 @@ public class LevelSetDressing : MonoBehaviour
     void BuildMuseumPiano(float startZ)
     {
         float footY = MuseumFootY();
-        Material ivory = CreateLitMaterial(new Color(0.94f, 0.92f, 0.87f));
-        Material goldKey = CreateLitMaterial(new Color(1f, 0.82f, 0.28f), emissive: true);
-        Material redKey = CreateLitMaterial(new Color(0.85f, 0.08f, 0.1f), emissive: true);
-        Material gapMat = CreateLitMaterial(new Color(0.08f, 0.07f, 0.07f));
+        Material ivory = CreateLitMaterial(Color.white, emissive: true);
+        Material redKey = CreateLitMaterial(new Color(0.72f, 0.08f, 0.1f), emissive: true);
+        Material blackKey = CreateLitMaterial(new Color(0.04f, 0.04f, 0.045f));
+        Material wood = CreateLitMaterial(Color.white, emissive: true);
 
-        BuildPianoPhrase(footY, startZ + 68f, Random.Range(2, 5), 5.5f, ivory, goldKey, redKey, gapMat);
-        BuildPianoPhrase(footY, startZ + 122f, Random.Range(2, 5), 5.5f, ivory, goldKey, redKey, gapMat);
+        BuildPianoPhrase(footY, startZ + 68f, Random.Range(2, 5), 6.2f, ivory, redKey, blackKey, wood, 1, 3);
+        BuildPianoPhrase(footY, startZ + 122f, Random.Range(2, 5), 6.2f, ivory, redKey, blackKey, wood, 1, 3);
     }
 
     float MuseumFootY()

@@ -51,7 +51,7 @@ public class HUDfunctions : MonoBehaviour
         }
 
         _enemy     = Object.FindAnyObjectByType<EnemyBase>();
-        _maxShield = _pickup != null ? _pickup.hitCounter : 10;   // snapshot from LevelBootstrap
+        _maxShield = _pickup != null ? _pickup.maxHeadphones : 10;
 
         // Auto-create any text fields that weren't wired in the Inspector
         // HUDfunctions lives on the Player (not inside Canvas), so search the scene for the gameplay Canvas.
@@ -91,6 +91,47 @@ public class HUDfunctions : MonoBehaviour
         ApplyStyle(boostText,     new Color(1f,   0.9f, 0.3f, 1f));    // yellow  — power-up
         ApplyStyle(scoreText,     new Color(0.9f, 0.9f, 0.9f, 1f));    // white   — score
         ApplyStyle(levelText,     new Color(0.7f, 0.7f, 1f,   1f));    // soft blue — level
+        EnlargeHudPanels();
+    }
+
+    void EnlargeHudPanels()
+    {
+        FitPanel("HUD_LeftPanel", 540f, 390f, 66f);
+        FitPanel("HUD_RightPanel", 360f, 170f, 66f);
+    }
+
+    static void FitPanel(string panelName, float width, float height, float rowHeight)
+    {
+        var panelGo = GameObject.Find(panelName);
+        if (panelGo == null) return;
+        var panel = panelGo.GetComponent<RectTransform>();
+        if (panel == null) return;
+
+        panel.sizeDelta = new Vector2(width, height);
+        float y = -14f;
+        for (int i = 0; i < panel.childCount; i++)
+        {
+            var row = panel.GetChild(i) as RectTransform;
+            if (row == null) continue;
+            row.anchoredPosition = new Vector2(0f, y);
+            row.sizeDelta = new Vector2(-28f, rowHeight);
+
+            var tmp = row.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (tmp != null)
+            {
+                tmp.enableWordWrapping = false;
+                tmp.overflowMode = TextOverflowModes.Overflow;
+                tmp.rectTransform.sizeDelta = new Vector2(width - 80f, rowHeight);
+                var layout = tmp.GetComponent<UnityEngine.UI.LayoutElement>();
+                if (layout != null)
+                {
+                    layout.preferredWidth = width - 80f;
+                    layout.preferredHeight = rowHeight;
+                }
+            }
+
+            y -= rowHeight + 8f;
+        }
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
@@ -101,20 +142,23 @@ public class HUDfunctions : MonoBehaviour
         // Re-find enemy if it disappeared and re-spawned
         if (_enemy == null) _enemy = Object.FindAnyObjectByType<EnemyBase>();
 
-        // ── Vibe ──────────────────────────────────────────────────────────────
-        TmpUiUtility.SetSafeText(healthText,
-            $"{_pickup.currentHealth}/{_pickup.maxHealth}");
+        // ── Vibe (rises with distance and the right pickups) ─────────────────
+        TmpUiUtility.SetSafeText(healthText, $"Vibe  {_pickup.Vibe:N0}");
 
-        // ── Artifacts ─────────────────────────────────────────────────────────
+        // ── Goal item. Same count on every level; only the name changes. ──────
+        var levelDef = LevelCatalog.Get(LevelProgress.CurrentLevel);
+        string itemName = string.IsNullOrEmpty(levelDef.collectibleName)
+            ? "Artifacts"
+            : levelDef.collectibleName;
         TmpUiUtility.SetSafeText(artifactText,
-            $"Artifacts  {_pickup.artifactAmount}/{PickupBase.ArtifactsToWin}");
+            $"{itemName}  {_pickup.artifactAmount}/{PickupBase.RequiredToWin}");
 
         // ── Shield (hitCounter) ───────────────────────────────────────────────
         int shield          = _pickup.hitCounter;
         int dangerThreshold = Mathf.Max(1, Mathf.CeilToInt(_maxShield * 0.3f));
         if (hitText != null)
         {
-            TmpUiUtility.SetSafeText(hitText, shield.ToString());
+            TmpUiUtility.SetSafeText(hitText, $"Headphones  {shield}");
             hitText.color = shield <= dangerThreshold
                 ? Color.Lerp(Color.red, new Color(0.4f, 0.75f, 1f, 1f),
                              Mathf.PingPong(Time.time * 3f, 1f))
@@ -156,7 +200,7 @@ public class HUDfunctions : MonoBehaviour
             else if (_pickup.IsJumpBoostActive)
                 boostMsg = $"JUMP  {_pickup.JumpBoostTimeLeft:F0}s";
             else if (_pickup.isSneaking)
-                boostMsg = $"SNEAK  {_pickup.SneakTimeLeft:F0}s";
+                boostMsg = $"HEADPHONES  {_pickup.SneakTimeLeft:F0}s";
 
             TmpUiUtility.SetSafeText(boostText, boostMsg);
             // Hide/show the entire row (icon + text) not just the text object
@@ -168,10 +212,7 @@ public class HUDfunctions : MonoBehaviour
         }
 
         // ── Score ─────────────────────────────────────────────────────────────
-        TmpUiUtility.SetSafeText(scoreText,
-            _pickup.artifactMoneyTotal > 0
-                ? $"${_pickup.artifactMoneyTotal:N0}"
-                : "");
+        TmpUiUtility.SetSafeText(scoreText, $"Score  {_pickup.RunScore:N0}");
 
         // ── Level ─────────────────────────────────────────────────────────────
         TmpUiUtility.SetSafeText(levelText,

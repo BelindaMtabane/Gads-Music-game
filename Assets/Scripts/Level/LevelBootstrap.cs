@@ -42,6 +42,7 @@ public class LevelBootstrap : MonoBehaviour
         {
             pickup.maxHealth     = def.startHealth;
             pickup.currentHealth = def.startHealth;
+            pickup.maxHeadphones = def.hitCount;
             pickup.hitCounter    = def.hitCount;
         }
 
@@ -66,8 +67,14 @@ public class LevelBootstrap : MonoBehaviour
         {
             spawner.spawnCount = def.spawnCount;
             spawner.artifactSegmentInterval = Mathf.Max(1, def.artifactEverySegments);
+            if (def.levelNumber >= 2)
+                spawner.artifactsPerSegment = 2;
             if (def.levelNumber == 1)
                 TrumpetVisual.AttachTo(spawner.artifactTemplate);
+            else if (def.levelNumber == 2)
+                OscarVisual.AttachTo(spawner.artifactTemplate);
+            else if (def.levelNumber == 3)
+                VinylVisual.AttachTo(spawner.artifactTemplate);
         }
 
         var gm = FindAnyObjectByType<GameManager>();

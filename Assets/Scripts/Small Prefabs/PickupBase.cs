@@ -14,11 +14,35 @@ public class PickupBase : MonoBehaviour
     public int maxHealth = 100;
     public const int ArtifactsToWin = 2;
 
+    public static int RequiredToWin
+    {
+        get
+        {
+            int level = LevelProgress.CurrentLevel;
+            if (level <= 0)
+                level = 1;
+            return Mathf.Max(1, LevelCatalog.Get(level).artifactsToWin);
+        }
+    }
+
     public int artifactAmount;
     public int artifactMoneyTotal;
     public int moneyPerArtifact = 500;
     public bool isSneaking = false;
     public int hitCounter = 10;
+    public int maxHeadphones = 10;
+
+    // Vibe is how far this level's run has gone. It resets every level.
+    // Good pickups add score points, and they are not added into vibe.
+    const float VibePerMeter = 4f;
+    float _vibeValue;
+    int _bonusPoints;
+    bool _runTracked;
+    float _trackedZ;
+
+    public int Vibe => Mathf.FloorToInt(_vibeValue);
+    public int BonusPoints => _bonusPoints;
+    public int RunScore => Vibe * 10 + _bonusPoints;
 
     private bool _deathHandled;
     readonly Dictionary<int, float> _solidHitTimes = new Dictionary<int, float>();
@@ -81,6 +105,30 @@ public class PickupBase : MonoBehaviour
             }
         }
 
+        TrackRunVibe();
+    }
+
+    void TrackRunVibe()
+    {
+        if (!GameManager.GameStarted || _deathHandled) return;
+
+        float z = transform.position.z;
+        if (!_runTracked)
+        {
+            _runTracked = true;
+            _trackedZ = z;
+            return;
+        }
+
+        float delta = z - _trackedZ;
+        if (delta <= 0f) return;
+        _trackedZ = z;
+        _vibeValue += delta * VibePerMeter;
+    }
+
+    void GrantCorrectPickup(int points)
+    {
+        _bonusPoints += points;
     }
     // Called both by Unity (if the CapsuleCollider trigger fires directly) and by
     // PickupTriggerProxy on the child "PickupTrigger" object.  The CharacterController
@@ -142,6 +190,7 @@ public class PickupBase : MonoBehaviour
         {
             AudioManager.Instance?.PlayHealthPickupSfx();
             HealthIncrease();
+            GrantCorrectPickup(100);
             DestroyPickupRoot(other);
         }
         if (HasTag(other, "HealthDEC"))
@@ -167,18 +216,20 @@ public class PickupBase : MonoBehaviour
         {
             AudioManager.Instance?.PlayJumpPickupSfx();
             JumpBoost();
+            GrantCorrectPickup(100);
             DestroyPickupRoot(other);
         }
         if (HasTag(other, "Sneak"))
         {
             AudioManager.Instance?.PlaySneakPickupSfx();
-            Sneak();
+            AddHeadphone();
             DestroyPickupRoot(other);
         }
         if (HasTag(other, "Speed"))
         {
             AudioManager.Instance?.PlaySpeedPickupSfx();
             SpeedBoost();
+            GrantCorrectPickup(150);
             DestroyPickupRoot(other);
         }
         if (HasTag(other, "SlowDown"))
@@ -273,6 +324,9 @@ public class PickupBase : MonoBehaviour
         // hitCounter intentionally NOT reset here â€” LevelBootstrap.Awake() owns that value
         artifactAmount     = 0;
         artifactMoneyTotal = 0;
+        _vibeValue         = 0f;
+        _bonusPoints       = 0;
+        _runTracked        = false;
         _deathHandled      = false;
     }
 
@@ -298,6 +352,7 @@ public class PickupBase : MonoBehaviour
 
         artifactAmount += count;
         artifactMoneyTotal += money;
+        GrantCorrectPickup(money);
         AudioManager.Instance?.PlayArtifactPickupSfx();
 
         // First artifact collected â†’ guard surges to add tension
@@ -340,7 +395,7 @@ public class PickupBase : MonoBehaviour
     /// <summary>Returns true and loads victory if the player has collected enough artifacts.</summary>
     public bool TryTriggerVictory()
     {
-        if (artifactAmount < ArtifactsToWin || currentHealth < 1)
+        if (artifactAmount < RequiredToWin || currentHealth < 1)
             return false;
 
         Victory();
@@ -359,6 +414,14 @@ public class PickupBase : MonoBehaviour
         speedBoostTimer = 0f;
         speedBoostActive = true;
     }
+    void AddHeadphone()
+    {
+        if (hitCounter < maxHeadphones)
+            hitCounter++;
+        GrantCorrectPickup(80);
+        Sneak();
+    }
+
     void Sneak()
     {
         isSneaking = true;

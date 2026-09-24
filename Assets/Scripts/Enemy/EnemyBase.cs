@@ -74,7 +74,7 @@ public class EnemyBase : MonoBehaviour
             _surgeTimer += Time.deltaTime;
             if (_surgeTimer >= _surgeDuration)
             {
-                speed    = baseSpeed;
+                speed    = baseSpeed + _pianoBonus;
                 _surging = false;
             }
         }
@@ -149,6 +149,41 @@ public class EnemyBase : MonoBehaviour
         baseSpeed    = normalSpeed;
         speed        = normalSpeed;
         boostedSpeed = boostSpeed;
+        _pianoBonus  = 0f;
+        _chaseStarted = false;
+    }
+
+    float _pianoBonus;
+    bool _chaseStarted;
+
+    public void AddPianoPressure()
+    {
+        _pianoBonus += 2f;
+        if (!_surging)
+            speed = baseSpeed + _pianoBonus;
+    }
+
+    public void RelievePianoPressure()
+    {
+        if (ChaseHasStarted())
+            return;
+
+        _pianoBonus = Mathf.Max(0f, _pianoBonus - 2f);
+        if (!_surging)
+            speed = baseSpeed + _pianoBonus;
+    }
+
+    bool ChaseHasStarted()
+    {
+        if (_chaseStarted)
+            return true;
+        if (player == null)
+            return false;
+
+        float behind = player.position.z - transform.position.z;
+        if (behind <= 8f)
+            _chaseStarted = true;
+        return _chaseStarted;
     }
 
     public bool IsSurging     => _surging;

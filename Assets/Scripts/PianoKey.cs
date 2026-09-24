@@ -2,8 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// One floor key in a piano row. Gold keys are safe to run. Red keys must be jumped.
-/// Standing on a red key slows the runner.
+/// One white key in a floor piano. Open keys are safe lanes. Red keys are closed.
 /// </summary>
 public class PianoKey : MonoBehaviour
 {
@@ -31,22 +30,14 @@ public class PianoKey : MonoBehaviour
             return;
 
         _resolved = true;
-        if (!correct)
-            PianoMissSlow.Apply(movement);
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (_resolved || !PlayerColliderUtility.IsPlayer(other))
+        var guard = Object.FindAnyObjectByType<EnemyBase>();
+        if (guard == null)
             return;
 
-        PlayerMovement movement = PlayerColliderUtility.GetMovement(other);
-        if (movement == null)
-            return;
-
-        var body = movement.GetComponent<CharacterController>();
-        if (body != null && !body.isGrounded)
-            _resolved = true;
+        if (correct)
+            guard.RelievePianoPressure();
+        else
+            guard.AddPianoPressure();
     }
 }
 

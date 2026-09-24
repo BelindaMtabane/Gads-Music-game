@@ -14,21 +14,42 @@ public static class TrumpetVisual
         if (renderer != null)
             renderer.enabled = false;
 
+        HideOtherChildren(artifact.transform);
+
         var gold = CreateGold();
         var root = new GameObject("Trumpet").transform;
         root.SetParent(artifact.transform, false);
-        root.localPosition = new Vector3(-0.7f, 0.9f, 0f);
-        root.localRotation = Quaternion.Euler(-12f, 25f, 0f);
-        root.localScale = Vector3.one * 0.9f;
+        root.localPosition = new Vector3(0f, 0.16f, 0f);
+        root.localRotation = Quaternion.Euler(8f, 40f, 78f);
+        root.localScale = Vector3.one;
 
-        AddPart(PrimitiveType.Cylinder, root, new Vector3(0f, 0f, 0.15f), new Vector3(0.11f, 0.42f, 0.11f), Quaternion.Euler(90f, 0f, 0f), gold);
-        AddPart(PrimitiveType.Sphere, root, new Vector3(0f, 0f, 0.62f), new Vector3(0.34f, 0.34f, 0.22f), Quaternion.identity, gold);
-        AddPart(PrimitiveType.Cylinder, root, new Vector3(0f, 0f, -0.42f), new Vector3(0.07f, 0.12f, 0.07f), Quaternion.Euler(90f, 0f, 0f), gold);
+        // About half a metre long, next to a two-metre runner.
+        AddPart(PrimitiveType.Cylinder, root, new Vector3(0f, 0f, 0.02f), new Vector3(0.028f, 0.16f, 0.028f), Quaternion.Euler(90f, 0f, 0f), gold);
+        AddPart(PrimitiveType.Sphere, root, new Vector3(0f, 0f, 0.22f), new Vector3(0.11f, 0.11f, 0.07f), Quaternion.identity, gold);
+        AddPart(PrimitiveType.Cylinder, root, new Vector3(0f, 0f, -0.18f), new Vector3(0.016f, 0.035f, 0.016f), Quaternion.Euler(90f, 0f, 0f), gold);
 
         for (int i = 0; i < 3; i++)
         {
-            float z = -0.05f + i * 0.13f;
-            AddPart(PrimitiveType.Cylinder, root, new Vector3(0f, 0.12f, z), new Vector3(0.045f, 0.08f, 0.045f), Quaternion.identity, gold);
+            float z = -0.02f + i * 0.045f;
+            AddPart(PrimitiveType.Cylinder, root, new Vector3(0f, 0.04f, z), new Vector3(0.012f, 0.02f, 0.012f), Quaternion.identity, gold);
+        }
+    }
+
+    static void HideOtherChildren(Transform artifact)
+    {
+        for (int i = 0; i < artifact.childCount; i++)
+        {
+            var child = artifact.GetChild(i);
+            if (child.name == "ArtifactGlow")
+                continue;
+            child.gameObject.SetActive(false);
+        }
+
+        var sphere = artifact.GetComponent<SphereCollider>();
+        if (sphere != null)
+        {
+            sphere.radius = 0.45f;
+            sphere.center = new Vector3(0f, 0.2f, 0f);
         }
     }
 

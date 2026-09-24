@@ -16,7 +16,7 @@ public class MusicBeatClock : MonoBehaviour
     public static readonly TrackTempo[] Tracks =
     {
         new TrackTempo { clipName = "Morning_on_the_Plateau", bpm = 92f, offsetSeconds = 0.174f },
-        new TrackTempo { clipName = "level2museumSound", bpm = 89f, offsetSeconds = 0.205f },
+        new TrackTempo { clipName = "Sunlight_in_the_Great_Hall", bpm = 89f, offsetSeconds = 0.205f },
         new TrackTempo { clipName = "level3GameSound", bpm = 123f, offsetSeconds = 0.279f },
     };
 

@@ -185,6 +185,12 @@ public class PlayerMovement : MonoBehaviour
             EndDodge();
     }
 
+    public void BounceUp()
+    {
+        velocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        canJump = false;
+    }
+
     void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (!enabled || !GameManager.GameStarted || hit.collider == null) return;

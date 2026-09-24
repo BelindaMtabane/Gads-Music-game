@@ -12,7 +12,7 @@ public class SetupAudio
     // Audio clip paths
     private const string BACKGROUND = "Assets/Audios/Morning_on_the_Plateau.mp3";
     private const string MENU_MUSIC = "Assets/Audios/Sunlight_in_the_Great_Hall.mp3";
-    private const string LEVEL2_MUSIC = "Assets/Audios/Sunlight_in_the_Great_Hall.mp3";
+    private const string LEVEL2_MUSIC = "Assets/Audios/level2museumSound.mp3";
     private const string LEVEL3_MUSIC = "Assets/Audios/Feet_Against_the_Earth.mp3";
     private const string BUTTON     = "Assets/Audios/button_sound.mp3";
     private const string COUNTDOWN  = "Assets/Audios/count_down_sound.mp3";

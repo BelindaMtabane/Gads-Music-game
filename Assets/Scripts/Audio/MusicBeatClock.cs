@@ -17,6 +17,7 @@ public class MusicBeatClock : MonoBehaviour
     {
         new TrackTempo { clipName = "Morning_on_the_Plateau", bpm = 92f, offsetSeconds = 0.174f },
         new TrackTempo { clipName = "Sunlight_in_the_Great_Hall", bpm = 89f, offsetSeconds = 0.205f },
+        new TrackTempo { clipName = "level2museumSound", bpm = 89f, offsetSeconds = 0.205f },
         new TrackTempo { clipName = "Feet_Against_the_Earth", bpm = 123f, offsetSeconds = 0.279f },
     };
 

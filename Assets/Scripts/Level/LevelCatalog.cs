@@ -73,7 +73,7 @@ public static class LevelCatalog
         spawnCount       = 5,
         artifactsToWin   = 2,
         artifactScale    = 1f,
-        spawnCurtains    = true,
+        spawnCurtains    = false,
         artifactEverySegments = 2,
         hitCount         = 10,       // Generous — easy mode
         startHealth      = 100,

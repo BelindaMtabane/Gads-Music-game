@@ -71,6 +71,7 @@ public class LevelSetDressing : MonoBehaviour
         }
 
         BuildOperaExit(exitZ, gold, wallMat, goldMat, darkMat);
+        BuildGuitarGate(startZ + 40f);
         BuildPianoFloor(startZ);
     }
 
@@ -90,13 +91,8 @@ public class LevelSetDressing : MonoBehaviour
         Material blackKey = CreateLitMaterial(new Color(0.04f, 0.04f, 0.045f));
         Material wood = CreateLitMaterial(Color.white, emissive: true);
 
-        float z = startZ + 52f;
-        for (int phrase = 0; phrase < 2; phrase++)
-        {
-            int notes = Random.Range(2, 5);
-            z = BuildPianoPhrase(footY, z, notes, 8.5f, ivory, redKey, blackKey, wood, 2, 4);
-            z += 46f;
-        }
+        BuildPianoPhrase(footY, startZ + 100f, 1, 24f, ivory, redKey, blackKey, wood, 2, 4);
+        BuildPianoPhrase(footY, startZ + 165f, 1, 24f, ivory, redKey, blackKey, wood, 2, 4);
     }
 
     float BuildPianoPhrase(float footY, float z, int notes, float rowStep, Material ivory, Material redKey, Material blackKey, Material wood, int minOpen, int maxOpen)
@@ -279,8 +275,10 @@ public class LevelSetDressing : MonoBehaviour
         // Hits a running player. A normal jump lifts the body clear of the beam.
         float beamY = footY + 1.05f;
 
-        for (float z = startZ + 34f; z < startZ + 175f; z += 28f)
+        float[] posts = { startZ + 150f };
+        for (int i = 0; i < posts.Length; i++)
         {
+            float z = posts[i];
             foreach (int side in new[] { -1, 1 })
             {
                 var post = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -294,17 +292,15 @@ public class LevelSetDressing : MonoBehaviour
 
             var beam = GameObject.CreatePrimitive(PrimitiveType.Cube);
             beam.name = "MuseumLaser";
-            beam.tag = "HealthDEC";
             beam.transform.SetParent(_root, false);
             beam.transform.position = new Vector3(0f, beamY, z);
             beam.transform.localScale = new Vector3(24f, 0.2f, 0.42f);
             ApplyMat(beam, beamMat);
-
-            var hurt = beam.AddComponent<HealthDecreaseObstacle>();
-            hurt.damage = 20;
-            hurt.vibeDamage = 8;
-            hurt.instantKill = false;
-            GameplayCollisionUtility.ConfigureObject(beam);
+            beam.AddComponent<TrackContact>().speedGuard = true;
+            var beamCol = beam.GetComponent<Collider>();
+            if (beamCol != null)
+                beamCol.isTrigger = true;
+            GameplayCollisionUtility.EnsureKinematicRigidbody(beam);
 
             var glow = new GameObject("MuseumLaserGlow").AddComponent<Light>();
             glow.transform.SetParent(beam.transform, false);
@@ -317,59 +313,57 @@ public class LevelSetDressing : MonoBehaviour
 
     void BuildMuseumStrings(float startZ)
     {
+        BuildGuitarGate(startZ + 105f);
+        BuildGuitarGate(startZ + 190f);
+    }
+
+    void BuildGuitarGate(float z)
+    {
         float footY = MuseumFootY();
         Material stringMat = CreateLitMaterial(new Color(0.82f, 0.78f, 0.62f), emissive: true);
         Material postMat = CreateLitMaterial(new Color(0.16f, 0.13f, 0.1f));
 
-        // Bottom sits above a G-dodge. Top stays in the way of a jump.
         const float bottom = 1.5f;
         const float top = 3.6f;
         float centerY = footY + (bottom + top) * 0.5f;
         float height = top - bottom;
 
-        float[] offsets = { 48f, 104f, 160f };
-        for (int s = 0; s < offsets.Length; s++)
+        var band = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        band.name = "MuseumGuitarStrings";
+        band.transform.SetParent(_root, false);
+        band.transform.position = new Vector3(0f, centerY, z);
+        band.transform.localScale = new Vector3(25f, height, 0.18f);
+        var bandRenderer = band.GetComponent<MeshRenderer>();
+        if (bandRenderer != null)
+            bandRenderer.enabled = false;
+
+        band.AddComponent<TrackContact>().slowPlayer = true;
+        var bandCol = band.GetComponent<Collider>();
+        if (bandCol != null)
+            bandCol.isTrigger = true;
+        GameplayCollisionUtility.EnsureKinematicRigidbody(band);
+
+        for (int line = 0; line < 4; line++)
         {
-            float z = startZ + offsets[s];
+            float y = footY + bottom + 0.18f + line * 0.48f;
+            var wire = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wire.name = "GuitarString";
+            wire.transform.SetParent(band.transform, false);
+            wire.transform.localPosition = new Vector3(0f, (y - centerY) / height, 0f);
+            wire.transform.localScale = new Vector3(1f, 0.035f / height, 2.2f);
+            ApplyMat(wire, stringMat);
+            DestroyCollider(wire);
+        }
 
-            var band = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            band.name = "MuseumGuitarStrings";
-            band.tag = "HealthDEC";
-            band.transform.SetParent(_root, false);
-            band.transform.position = new Vector3(0f, centerY, z);
-            band.transform.localScale = new Vector3(25f, height, 0.18f);
-            var bandRenderer = band.GetComponent<MeshRenderer>();
-            if (bandRenderer != null)
-                bandRenderer.enabled = false;
-
-            var hurt = band.AddComponent<HealthDecreaseObstacle>();
-            hurt.damage = 20;
-            hurt.vibeDamage = 8;
-            hurt.instantKill = false;
-            GameplayCollisionUtility.ConfigureObject(band);
-
-            for (int line = 0; line < 5; line++)
-            {
-                float y = footY + bottom + 0.12f + line * 0.42f;
-                var wire = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                wire.name = "GuitarString";
-                wire.transform.SetParent(band.transform, false);
-                wire.transform.localPosition = new Vector3(0f, (y - centerY) / height, 0f);
-                wire.transform.localScale = new Vector3(1f, 0.035f / height, 2.2f);
-                ApplyMat(wire, stringMat);
-                DestroyCollider(wire);
-            }
-
-            foreach (int side in new[] { -1, 1 })
-            {
-                var post = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                post.name = "GuitarStringPost";
-                post.transform.SetParent(_root, false);
-                post.transform.position = new Vector3(side * 12.35f, footY + top * 0.5f, z);
-                post.transform.localScale = new Vector3(0.22f, top, 0.22f);
-                ApplyMat(post, postMat);
-                DestroyCollider(post);
-            }
+        foreach (int side in new[] { -1, 1 })
+        {
+            var post = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            post.name = "GuitarStringPost";
+            post.transform.SetParent(_root, false);
+            post.transform.position = new Vector3(side * 12.35f, footY + top * 0.5f, z);
+            post.transform.localScale = new Vector3(0.22f, top, 0.22f);
+            ApplyMat(post, postMat);
+            DestroyCollider(post);
         }
     }
 
@@ -381,8 +375,7 @@ public class LevelSetDressing : MonoBehaviour
         Material blackKey = CreateLitMaterial(new Color(0.04f, 0.04f, 0.045f));
         Material wood = CreateLitMaterial(Color.white, emissive: true);
 
-        BuildPianoPhrase(footY, startZ + 68f, Random.Range(2, 5), 6.2f, ivory, redKey, blackKey, wood, 1, 3);
-        BuildPianoPhrase(footY, startZ + 122f, Random.Range(2, 5), 6.2f, ivory, redKey, blackKey, wood, 1, 3);
+        BuildPianoPhrase(footY, startZ + 48f, 1, 24f, ivory, redKey, blackKey, wood, 2, 3);
     }
 
     float MuseumFootY()
@@ -489,7 +482,7 @@ public class LevelSetDressing : MonoBehaviour
 
         const float bottom = 1.5f;
         const float top = 3.6f;
-        float[] offsets = { 40f, 92f, 144f, 196f };
+        float[] offsets = { 80f, 190f };
         for (int i = 0; i < offsets.Length; i++)
         {
             float z = startZ + offsets[i];
@@ -545,8 +538,8 @@ public class LevelSetDressing : MonoBehaviour
             new Color(1f, 0.85f, 0.2f)
         };
         Material skin = CreateLitMaterial(new Color(0.62f, 0.45f, 0.34f));
-        float[] lanes = { -6f, 6f, 0f };
-        float[] offsets = { 58f, 118f, 176f };
+        float[] lanes = { -6f, 6f };
+        float[] offsets = { 135f, 240f };
 
         for (int g = 0; g < lanes.Length; g++)
         {

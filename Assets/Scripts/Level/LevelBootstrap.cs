@@ -89,6 +89,7 @@ public class LevelBootstrap : MonoBehaviour
         if (def.levelNumber == 3)
             ClubMicrophone.ReplaceLoadedDrums();
         OpeningCurtain.BindAll();
+        RemoveMovingCurtains();
         PickupPresentation.Reveal();
     }
 
@@ -133,6 +134,19 @@ public class LevelBootstrap : MonoBehaviour
                 // Also clear the curtain prefab so TrySpawnSideCurtain never fires.
                 spawner.curtainPrefab = null;
             }
+        }
+
+        if (!def.spawnCurtains)
+            RemoveMovingCurtains();
+    }
+
+    static void RemoveMovingCurtains()
+    {
+        var curtains = Object.FindObjectsByType<CurtainObstacle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        for (int i = 0; i < curtains.Length; i++)
+        {
+            if (curtains[i] != null)
+                Object.Destroy(curtains[i].gameObject);
         }
     }
 

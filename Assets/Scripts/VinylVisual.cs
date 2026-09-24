@@ -28,9 +28,9 @@ public static class VinylVisual
             sphere.center = new Vector3(0f, 0.18f, 0f);
         }
 
-        var vinyl = Create(new Color(0.05f, 0.05f, 0.06f), 0.08f);
-        var label = Create(new Color(0.85f, 0.15f, 0.45f), 0.35f);
-        var hole = Create(new Color(0.02f, 0.02f, 0.02f), 0f);
+        var vinyl = Create(new Color(0.15f, 0.95f, 1f), 2.6f);
+        var label = Create(new Color(1f, 0.08f, 0.72f), 2.4f);
+        var hole = Create(new Color(0.55f, 0.15f, 1f), 1.8f);
 
         var root = new GameObject("Vinyl").transform;
         root.SetParent(artifact.transform, false);
@@ -40,6 +40,13 @@ public static class VinylVisual
         Add(PrimitiveType.Cylinder, root, Vector3.zero, new Vector3(0.3f, 0.004f, 0.3f), Quaternion.identity, vinyl);
         Add(PrimitiveType.Cylinder, root, new Vector3(0f, 0.006f, 0f), new Vector3(0.1f, 0.004f, 0.1f), Quaternion.identity, label);
         Add(PrimitiveType.Cylinder, root, new Vector3(0f, 0.01f, 0f), new Vector3(0.012f, 0.004f, 0.012f), Quaternion.identity, hole);
+
+        var glow = new GameObject("VinylGlow").AddComponent<Light>();
+        glow.transform.SetParent(root, false);
+        glow.type = LightType.Point;
+        glow.color = new Color(0.35f, 0.85f, 1f);
+        glow.range = 4.5f;
+        glow.intensity = 2.4f;
     }
 
     static void Add(PrimitiveType type, Transform parent, Vector3 localPos, Vector3 scale, Quaternion rotation, Material mat)

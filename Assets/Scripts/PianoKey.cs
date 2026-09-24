@@ -90,3 +90,30 @@ public class PianoMissSlow : MonoBehaviour
         _routine = null;
     }
 }
+
+/// <summary>
+/// Guitar strings slow the runner. A laser speeds the guard. Neither follows the player's slow.
+/// </summary>
+public class TrackContact : MonoBehaviour
+{
+    public bool slowPlayer;
+    public bool speedGuard;
+    bool _done;
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (_done || !PlayerColliderUtility.IsPlayer(other))
+            return;
+
+        _done = true;
+        if (slowPlayer)
+            PianoMissSlow.Apply(PlayerColliderUtility.GetMovement(other));
+
+        if (speedGuard)
+            Object.FindAnyObjectByType<EnemyBase>()?.AddPianoPressure();
+
+        var col = GetComponent<Collider>();
+        if (col != null)
+            col.enabled = false;
+    }
+}

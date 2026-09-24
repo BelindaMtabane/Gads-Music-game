@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -35,12 +34,10 @@ public class Spawner : MonoBehaviour
     [Range(0f, 1f)]
     public float curtainSpawnChance = 0.7f;
 
-    private const float CurtainSideMinX = 7f;
-    private const float CurtainSideMaxX = 10f;
-    private const float CurtainSpawnY = 3f;
     private const float SpawnSurfaceLift = 0.12f;
-    public const float CurtainPickupGap = 16f;
+    const float SpawnGap = 18f;
     private const int GroundLayerMask = 1 << 6;
+    static readonly float[] SpawnLanes = { -4.5f, 0f, 4.5f };
 
     public void SpawnGameObjects(GameObject ground)
     {
@@ -50,33 +47,38 @@ public class Spawner : MonoBehaviour
         GetSpawnRange(ground, footprint, out float minX, out float maxX, out float minZ, out float maxZ);
         float rayStartY = footprint.max.y + 5f;
 
-        var placed = new List<Vector3>(spawnCount);
-        for (int i = 0; i < spawnCount; i++)
-        {
-            GameObject spawnPickup = PickRandomNonArtifact();
-            if (spawnPickup == null) continue;
+        float span = Mathf.Max(0.01f, maxZ - minZ);
+        int capacity = Mathf.Max(1, Mathf.FloorToInt(span / SpawnGap));
+        int count = Mathf.Min(Mathf.Max(1, spawnCount), capacity);
 
-            Vector3 position = Vector3.zero;
-            bool placedClear = false;
-            for (int attempt = 0; attempt < 8; attempt++)
+        int artifactSlots = 0;
+        if (artifactTemplate != null && artifactsPerSegment > 0 && ConsumeArtifactTurn())
+            artifactSlots = Mathf.Min(artifactsPerSegment, count);
+
+        for (int i = 0; i < count; i++)
+        {
+            float z = Mathf.Lerp(minZ, maxZ, (i + 0.5f) / count);
+            float x = Mathf.Clamp(SpawnLanes[i % SpawnLanes.Length], minX, maxX);
+            Vector3 position = SnapToGroundSurface(x, z, ground, rayStartY);
+
+            if (i >= count - artifactSlots)
             {
-                float spawnX = Random.Range(minX, maxX);
-                float spawnZ = Random.Range(minZ, maxZ);
-                position = SnapToGroundSurface(spawnX, spawnZ, ground, rayStartY);
-                if (!IsCrowded(position, placed, 7f) && !BlocksCurtainView(position))
-                {
-                    placedClear = true;
-                    break;
-                }
+                position.y += 0.35f;
+                AddArtifactGlow(SpawnOnGround(artifactTemplate, position, ground));
+                continue;
             }
 
-            if (!placedClear) continue;
-            placed.Add(position);
+            GameObject spawnPickup = PickRandomNonArtifact();
+            if (spawnPickup == null) continue;
             SpawnOnGround(spawnPickup, position, ground);
         }
+    }
 
-        TrySpawnSideCurtain(ground, footprint);
-        SpawnArtifacts(ground, footprint, minX, maxX, minZ, maxZ, rayStartY);
+    bool ConsumeArtifactTurn()
+    {
+        _segmentsConsideredForArtifacts++;
+        int interval = Mathf.Max(1, artifactSegmentInterval);
+        return (_segmentsConsideredForArtifacts % interval) == 0;
     }
 
     static GameObject SpawnOnGround(GameObject template, Vector3 worldPosition, GameObject groundSegment)
@@ -169,7 +171,7 @@ public class Spawner : MonoBehaviour
         {
             int totalWeight = 0;
             foreach (var e in weightedObjects)
-                if (e.prefab != null && !e.prefab.CompareTag("Artifact"))
+                if (e.prefab != null && !e.prefab.CompareTag("Artifact") && !IsCurtain(e.prefab))
                     totalWeight += Mathf.Max(1, e.weight);
 
             if (totalWeight > 0)
@@ -178,7 +180,7 @@ public class Spawner : MonoBehaviour
                 int cumulative = 0;
                 foreach (var e in weightedObjects)
                 {
-                    if (e.prefab == null || e.prefab.CompareTag("Artifact")) continue;
+                    if (e.prefab == null || e.prefab.CompareTag("Artifact") || IsCurtain(e.prefab)) continue;
                     cumulative += Mathf.Max(1, e.weight);
                     if (roll < cumulative) return e.prefab;
                 }
@@ -192,50 +194,12 @@ public class Spawner : MonoBehaviour
         {
             var pick = spawnObjects[Random.Range(0, spawnObjects.Length)];
             if (pick == null) continue;
-            if (pick.CompareTag("Artifact")) continue;
+            if (pick.CompareTag("Artifact") || IsCurtain(pick)) continue;
             if (artifactTemplate != null && pick == artifactTemplate) continue;
             return pick;
         }
 
         return spawnObjects[Random.Range(0, spawnObjects.Length)];
-    }
-
-    private void SpawnArtifacts(GameObject ground, Bounds footprint, float minX, float maxX, float minZ, float maxZ, float rayStartY)
-    {
-        if (artifactTemplate == null || artifactsPerSegment < 1)
-            return;
-
-        _segmentsConsideredForArtifacts++;
-        int interval = Mathf.Max(1, artifactSegmentInterval);
-        if ((_segmentsConsideredForArtifacts % interval) != 0)
-            return;
-
-        for (int i = 0; i < artifactsPerSegment; i++)
-        {
-            float x = Random.Range(minX, maxX);
-            float z = Random.Range(minZ, maxZ);
-            Vector3 position = SnapToGroundSurface(x, z, ground, rayStartY);
-            for (int attempt = 0; attempt < 8 && BlocksCurtainView(position); attempt++)
-            {
-                z = Random.Range(minZ, maxZ);
-                position = SnapToGroundSurface(Random.Range(minX, maxX), z, ground, rayStartY);
-            }
-            position.y += 0.35f;
-            AddArtifactGlow(SpawnOnGround(artifactTemplate, position, ground));
-        }
-    }
-
-    static bool IsCrowded(Vector3 candidate, List<Vector3> placed, float minDistance)
-    {
-        float minSqr = minDistance * minDistance;
-        for (int i = 0; i < placed.Count; i++)
-        {
-            Vector3 delta = placed[i] - candidate;
-            delta.y = 0f;
-            if (delta.sqrMagnitude < minSqr)
-                return true;
-        }
-        return false;
     }
 
     static void AddArtifactGlow(GameObject artifact)
@@ -253,82 +217,18 @@ public class Spawner : MonoBehaviour
         light.intensity = 1.5f;
     }
 
-    private void TrySpawnSideCurtain(GameObject ground, Bounds footprint)
-    {
-        if (curtainPrefab == null || Random.value > curtainSpawnChance)
-            return;
-
-        float side = Random.value < 0.5f ? -1f : 1f;
-        float x = side * Random.Range(CurtainSideMinX, CurtainSideMaxX);
-        float z = Random.Range(footprint.min.z + 5f, footprint.max.z - 5f);
-        if (ground.GetComponent<GroundSegmentLifetime>() == null)
-            z = Mathf.Max(z, MinSpawnZ);
-
-        Vector3 position = new Vector3(x, CurtainSpawnY, z);
-        var curtain = Object.Instantiate(curtainPrefab, position, curtainPrefab.transform.rotation);
-        curtain.transform.localScale = curtainPrefab.transform.localScale;
-        PrepareSpawnedClone(curtain);
-        GroundSegmentContent.Bind(curtain, ground);
-        ClearPickupsAheadOf(curtain.transform.position);
-    }
-
     public GameObject SpawnSideCurtainAt(float worldZ)
     {
-        if (curtainPrefab == null)
-            return null;
-
-        float side = Random.value < 0.5f ? -1f : 1f;
-        float x = side * Random.Range(CurtainSideMinX, CurtainSideMaxX);
-        GameObject curtain = Instantiate(curtainPrefab, new Vector3(x, CurtainSpawnY, worldZ), curtainPrefab.transform.rotation);
-        curtain.transform.localScale = curtainPrefab.transform.localScale;
-        PrepareSpawnedClone(curtain);
-        ClearPickupsAheadOf(curtain.transform.position);
-        Destroy(curtain, 65f);
-        return curtain;
+        return null;
     }
 
-    static bool BlocksCurtainView(Vector3 position)
+    static bool IsCurtain(GameObject go)
     {
-        var curtains = Object.FindObjectsByType<CurtainObstacle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-        for (int i = 0; i < curtains.Length; i++)
-        {
-            if (curtains[i] == null) continue;
-            float ahead = position.z - curtains[i].transform.position.z;
-            if (ahead > -2.5f && ahead < CurtainPickupGap)
-                return true;
-        }
-        return false;
-    }
-
-    public static void ClearPickupsAheadOf(Vector3 curtainPos)
-    {
-        var roots = Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-        int shifted = 0;
-        for (int i = 0; i < roots.Length; i++)
-        {
-            var t = roots[i];
-            if (t == null || t.parent != null) continue;
-            if (!IsCollectible(t)) continue;
-
-            float ahead = t.position.z - curtainPos.z;
-            if (ahead <= -2.5f || ahead >= CurtainPickupGap) continue;
-
-            var p = t.position;
-            p.z = curtainPos.z + CurtainPickupGap + shifted * 5f;
-            t.position = p;
-            shifted++;
-        }
-    }
-
-    static bool IsCollectible(Transform t)
-    {
+        if (go == null) return true;
+        if (go.name.StartsWith("Curtain")) return true;
         try
         {
-            return t.CompareTag("Speed")
-                || t.CompareTag("Sneak")
-                || t.CompareTag("HealthINC")
-                || t.CompareTag("JumpBoost")
-                || t.CompareTag("Artifact");
+            return go.CompareTag("Curtain");
         }
         catch (UnityException)
         {

@@ -24,7 +24,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip backgroundMusic;   // L1 — Morning_on_the_Plateau.mp3
     [Tooltip("Start menu and main-menu bed. Sunlight in the Great Hall.")]
     public AudioClip startMenuMusic;
-    public AudioClip level2Music;       // L2 — Sunlight_in_the_Great_Hall.mp3
+    public AudioClip level2Music;       // L2 — level2museumSound.mp3
     public AudioClip level3Music;       // L3 — Feet_Against_the_Earth.mp3
     public AudioClip buttonSound;       // button_sound.mp3
     public AudioClip countdownSound;    // count_down_sound.mp3

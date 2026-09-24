@@ -45,6 +45,7 @@ public class PickupBase : MonoBehaviour
     public int RunScore => Vibe * 10 + _bonusPoints;
 
     private bool _deathHandled;
+    float _drumBounceReady;
     readonly Dictionary<int, float> _solidHitTimes = new Dictionary<int, float>();
     const float SolidHitCooldown = 0.45f;
 
@@ -195,6 +196,12 @@ public class PickupBase : MonoBehaviour
         }
         if (HasTag(other, "HealthDEC"))
         {
+            if (IsRollingDrum(other))
+            {
+                BounceOffDrum();
+                return;
+            }
+
             AudioManager.Instance?.PlayObstacleHitSfx();
             var obstacle = other.GetComponentInParent<HealthDecreaseObstacle>();
             if (obstacle != null)
@@ -375,6 +382,40 @@ public class PickupBase : MonoBehaviour
         artifactAmount--;
         AudioManager.Instance?.PlayObstacleHitSfx();
         return true;
+    }
+
+    static bool IsRollingDrum(Collider other)
+    {
+        if (other == null)
+            return false;
+        if (other.GetComponentInParent<DrumRollToCurtain>() != null)
+            return true;
+
+        var t = other.transform;
+        while (t != null)
+        {
+            if (t.name.IndexOf("Drum", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            t = t.parent;
+        }
+        return false;
+    }
+
+    void BounceOffDrum()
+    {
+        if (Time.time < _drumBounceReady)
+            return;
+        _drumBounceReady = Time.time + 0.8f;
+
+        playerMovement?.BounceUp();
+
+        if (hitCounter > 0)
+        {
+            hitCounter--;
+            AudioManager.Instance?.PlayObstacleHitSfx();
+        }
+        else
+            LoseArtifact();
     }
 
     void TriggerArtifactDialogue()

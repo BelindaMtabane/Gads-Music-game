@@ -82,23 +82,14 @@ public class EnemyBase : MonoBehaviour
         //Calculate the target position to follow the player
         Vector3 targetPosition = new Vector3(player.position.x, transform.position.y, player.position.z - followDistance);
 
-        float chaseSpeed = GetChaseSpeed();
+        float chaseSpeed = speed;
 
         //Move toward player
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, chaseSpeed * Time.deltaTime);
         SnapToGround(false);
     }
 
-    float GetChaseSpeed()
-    {
-        if (playerMovement != null &&
-            playerMovement.forwardSpeed < playerMovement.baseForwardSpeed - 0.1f)
-            return Mathf.Max(1f, playerMovement.forwardSpeed + catchUpMargin);
-
-        return speed;
-    }
-
-    private void SnapToGround(bool instant)
+    void SnapToGround(bool instant)
     {
         LayerMask mask = groundMask.value != 0 ? groundMask : LayerMask.GetMask("Ground");
 

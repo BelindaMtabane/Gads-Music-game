@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Rolls a drum obstacle down its lane toward the curtain that closes the hall.
+/// Rolls a drum forward along the track, in the same direction the player runs.
 /// </summary>
 public class DrumRollToCurtain : MonoBehaviour
 {
@@ -9,7 +9,6 @@ public class DrumRollToCurtain : MonoBehaviour
     public float stopDistance = 2.2f;
 
     float _targetZ;
-    bool _hasTarget;
     float _rolled;
     Quaternion _baseRotation;
     const float Radius = 0.55f;
@@ -28,66 +27,45 @@ public class DrumRollToCurtain : MonoBehaviour
             childAnimator.enabled = false;
 
         _baseRotation = transform.rotation;
+        _targetZ = transform.position.z + 90f;
     }
 
     void Start()
     {
-        _hasTarget = TryFindCurtainZ(out _targetZ);
+        float ahead = FindFinishZ();
+        if (ahead > transform.position.z + 6f)
+            _targetZ = ahead - stopDistance;
     }
 
     void Update()
     {
-        if (!_hasTarget || !GameManager.GameStarted)
+        if (!GameManager.GameStarted)
             return;
 
+        float remaining = _targetZ - transform.position.z;
+        if (remaining <= stopDistance)
+            return;
+
+        float step = Mathf.Min(speed * Time.deltaTime, remaining);
         Vector3 pos = transform.position;
-        float remaining = _targetZ - pos.z;
-        if (Mathf.Abs(remaining) <= stopDistance)
-            return;
-
-        float step = Mathf.Sign(remaining) * speed * Time.deltaTime;
-        if (Mathf.Abs(step) > Mathf.Abs(remaining))
-            step = remaining;
-
         pos.z += step;
         transform.position = pos;
 
-        float degrees = Mathf.Abs(step) / Radius * Mathf.Rad2Deg;
-        _rolled += Mathf.Sign(step) * degrees;
-        transform.rotation = _baseRotation * Quaternion.AngleAxis(_rolled, Vector3.right);
+        _rolled += step / Radius * Mathf.Rad2Deg;
+        transform.rotation = _baseRotation * Quaternion.AngleAxis(-_rolled, Vector3.right);
     }
 
-    static bool TryFindCurtainZ(out float targetZ)
+    static float FindFinishZ()
     {
-        var exit = GameObject.Find("OperaExitWall");
-        if (exit != null)
+        float best = float.NegativeInfinity;
+        string[] names = { "MuseumEndWall", "ClubEndWall", "OperaExitWall" };
+        for (int i = 0; i < names.Length; i++)
         {
-            targetZ = exit.transform.position.z;
-            return true;
+            var marker = GameObject.Find(names[i]);
+            if (marker != null)
+                best = Mathf.Max(best, marker.transform.position.z);
         }
-
-        var club = GameObject.Find("ClubEndWall");
-        if (club != null)
-        {
-            targetZ = club.transform.position.z;
-            return true;
-        }
-
-        float best = float.PositiveInfinity;
-        bool found = false;
-        var curtains = Object.FindObjectsByType<CurtainObstacle>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        for (int i = 0; i < curtains.Length; i++)
-        {
-            float z = curtains[i].transform.position.z;
-            if (z < best)
-            {
-                best = z;
-                found = true;
-            }
-        }
-
-        targetZ = found ? best : 24f;
-        return true;
+        return best;
     }
 
     public static void Attach(GameObject go)

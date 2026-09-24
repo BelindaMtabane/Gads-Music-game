@@ -5,7 +5,9 @@ using UnityEngine;
 /// </summary>
 public static class PickupPresentation
 {
-    const float TargetSize = 0.42f;
+    const float TargetSize = 1.2f;
+    const float FloorClearance = 0.16f;
+    const int GroundLayerMask = 1 << 6;
 
     public static void Reveal()
     {
@@ -70,6 +72,8 @@ public static class PickupPresentation
             cube.enabled = false;
 
         FitModels(pickup);
+        if (LevelProgress.CurrentLevel == 3)
+            LightDarkPickup(pickup);
         if (!HasThemedArtifact(pickup.transform))
             ShrinkTrigger(pickup);
 
@@ -84,7 +88,7 @@ public static class PickupPresentation
             var child = pickup.transform.GetChild(i);
             if (!child.gameObject.activeInHierarchy)
                 continue;
-            if (IsDecoration(child) || IsThemedArtifact(child.name))
+            if (IsDecoration(child))
                 continue;
             if (child.GetComponentInChildren<Renderer>() == null)
                 continue;
@@ -93,15 +97,70 @@ public static class PickupPresentation
                 continue;
 
             float size = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
-            if (size > TargetSize + 0.08f)
+            if (size > 0.05f && Mathf.Abs(size - TargetSize) > 0.08f)
             {
                 child.localScale *= TargetSize / size;
                 if (!TryGetBounds(child, out bounds))
                     continue;
             }
 
-            float lift = (pickup.transform.position.y + 0.06f) - bounds.min.y;
+            float floorY = FloorHeight(pickup.transform.position);
+            float lift = (floorY + FloorClearance) - bounds.min.y;
             child.position += Vector3.up * lift;
+        }
+    }
+
+    static float FloorHeight(Vector3 position)
+    {
+        Vector3 origin = new Vector3(position.x, position.y + 8f, position.z);
+        var hits = Physics.RaycastAll(origin, Vector3.down, 24f, GroundLayerMask, QueryTriggerInteraction.Ignore);
+        float highest = float.NegativeInfinity;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (hits[i].point.y > highest)
+                highest = hits[i].point.y;
+        }
+
+        return highest > float.NegativeInfinity ? highest : position.y;
+    }
+
+    static void LightDarkPickup(GameObject pickup)
+    {
+        if (pickup.transform.Find("PickupLight") != null)
+            return;
+
+        var lightGo = new GameObject("PickupLight");
+        lightGo.transform.SetParent(pickup.transform, false);
+        lightGo.transform.localPosition = Vector3.up * 0.5f;
+        var light = lightGo.AddComponent<Light>();
+        light.type = LightType.Point;
+        light.range = 5f;
+        light.intensity = 2.6f;
+        light.color = new Color(0.45f, 0.9f, 1f);
+
+        var renderers = pickup.GetComponentsInChildren<Renderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] == null || IsDecoration(renderers[i].transform))
+                continue;
+
+            var mats = renderers[i].materials;
+            for (int m = 0; m < mats.Length; m++)
+            {
+                if (mats[m] == null)
+                    continue;
+                Color c = mats[m].HasProperty("_BaseColor") ? mats[m].GetColor("_BaseColor") : mats[m].color;
+                float luma = c.r * 0.3f + c.g * 0.59f + c.b * 0.11f;
+                if (luma > 0.28f)
+                    continue;
+
+                Color neon = Color.Lerp(new Color(0.25f, 0.85f, 1f), new Color(1f, 0.15f, 0.8f), 0.45f);
+                if (mats[m].HasProperty("_BaseColor"))
+                    mats[m].SetColor("_BaseColor", neon);
+                mats[m].color = neon;
+                mats[m].EnableKeyword("_EMISSION");
+                mats[m].SetColor("_EmissionColor", neon * 1.8f);
+            }
         }
     }
 
@@ -110,23 +169,23 @@ public static class PickupPresentation
         var sphere = pickup.GetComponent<SphereCollider>();
         if (sphere != null)
         {
-            sphere.radius = 0.32f;
-            sphere.center = new Vector3(0f, 0.2f, 0f);
+            sphere.radius = 0.55f;
+            sphere.center = new Vector3(0f, 0.55f, 0f);
         }
 
         var box = pickup.GetComponent<BoxCollider>();
         if (box != null)
         {
-            box.size = new Vector3(0.5f, 0.5f, 0.5f);
-            box.center = new Vector3(0f, 0.22f, 0f);
+            box.size = new Vector3(1.1f, 1.1f, 1.1f);
+            box.center = new Vector3(0f, 0.55f, 0f);
         }
 
         var capsule = pickup.GetComponent<CapsuleCollider>();
         if (capsule != null)
         {
-            capsule.radius = 0.28f;
-            capsule.height = 0.6f;
-            capsule.center = new Vector3(0f, 0.28f, 0f);
+            capsule.radius = 0.5f;
+            capsule.height = 1.15f;
+            capsule.center = new Vector3(0f, 0.58f, 0f);
         }
     }
 

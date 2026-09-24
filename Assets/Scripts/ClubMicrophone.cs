@@ -44,6 +44,14 @@ public static class ClubMicrophone
         AddPart(PrimitiveType.Capsule, mic, new Vector3(0f, 0f, 0f), new Vector3(0.16f, 0.42f, 0.16f), Quaternion.identity, metal);
         AddPart(PrimitiveType.Sphere, mic, new Vector3(0f, 0.55f, 0f), new Vector3(0.38f, 0.38f, 0.38f), Quaternion.identity, dark);
         AddPart(PrimitiveType.Cylinder, mic, new Vector3(0f, 0.55f, 0.16f), new Vector3(0.22f, 0.04f, 0.22f), Quaternion.Euler(90f, 0f, 0f), metal);
+
+        var glow = new GameObject("MicGlow").AddComponent<Light>();
+        glow.transform.SetParent(mic, false);
+        glow.transform.localPosition = new Vector3(0f, 0.4f, 0f);
+        glow.type = LightType.Point;
+        glow.color = new Color(0.65f, 0.3f, 1f);
+        glow.range = 5f;
+        glow.intensity = 2.2f;
     }
 
     static bool ContainsDrum(GameObject go)
@@ -97,7 +105,9 @@ public static class ClubMicrophone
     {
         var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
         var mat = new Material(shader);
-        mat.color = new Color(0.08f, 0.08f, 0.1f);
+        mat.color = new Color(0.55f, 0.2f, 1f);
+        mat.EnableKeyword("_EMISSION");
+        mat.SetColor("_EmissionColor", mat.color * 1.8f);
         return mat;
     }
 }

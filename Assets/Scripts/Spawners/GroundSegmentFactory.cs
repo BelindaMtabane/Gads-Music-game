@@ -83,6 +83,7 @@ public static class GroundSegmentFactory
             clone.transform.localPosition = child.localPosition;
             clone.transform.localRotation = child.localRotation;
             clone.transform.localScale = child.localScale;
+            BeatPulseVisual.Attach(clone);
         }
     }
 

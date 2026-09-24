@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class EnemyBase : MonoBehaviour
 {
@@ -38,7 +38,7 @@ public class EnemyBase : MonoBehaviour
 
         if (pickupBase == null)
             Debug.LogError("PickupBase script not found on Player!");
-        // currentHealth is owned by LevelBootstrap — do NOT overwrite it here
+        // currentHealth is owned by LevelBootstrap â€” do NOT overwrite it here
 
         if (playerMovement == null)
             Debug.LogError("PlayerMovement script not found on Player!");
@@ -68,7 +68,7 @@ public class EnemyBase : MonoBehaviour
         if (!GameManager.GameStarted)
             return;
 
-        // Surge timer — returns to base speed when surge expires
+        // Surge timer â€” returns to base speed when surge expires
         if (_surging)
         {
             _surgeTimer += Time.deltaTime;
@@ -76,7 +76,6 @@ public class EnemyBase : MonoBehaviour
             {
                 speed    = baseSpeed;
                 _surging = false;
-                Debug.Log("Guard surge ended — returning to base speed.");
             }
         }
 
@@ -142,7 +141,6 @@ public class EnemyBase : MonoBehaviour
         if (pickupBase.isSneaking) return;
 
         _caughtPlayer = true;
-        Debug.Log("Security caught the player!");
         pickupBase.KillPlayer(DeathCause.Guard);
     }
 
@@ -167,6 +165,5 @@ public class EnemyBase : MonoBehaviour
         _surgeDuration = duration;
         _surgeTimer   = 0f;
         _surging      = true;
-        Debug.Log($"Guard surge! Speed → {boostedSpeed} for {duration}s.");
     }
 }

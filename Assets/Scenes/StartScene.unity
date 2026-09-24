@@ -1004,11 +1004,10 @@ MonoBehaviour:
   nextButton: {fileID: 668092399}
   pauseMenuHud: {fileID: 176264700}
   narrationLines:
-  - Welcome to Rhythm Raiders!
-  - You are a musician on the run. Collect all the instruments before the security
-    guard catches you!
-  - Use the arrow keys or WASD to move, and Space to jump.
-  - Avoid obstacles, collect power-ups, and reach the goal. Good luck!
+  - Welcome to Rhythm Raiders Horizon.
+  - You are Pulse, a rhythm thief. Run to the rhythm. Steal the beat.
+  - The Opera House is playable. Collect two artifacts and escape the guard.
+  - The Music Museum and Underground Club are planned levels, not part of this run.
   speakerName: 
 --- !u!114 &176264695
 MonoBehaviour:
@@ -5528,7 +5527,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1344093608
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5568,7 +5567,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Collect 2 instruments. Outrun the guard.
+  m_text: Run to the rhythm. Steal the beat.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7151,7 +7150,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29191079bc5f46e42b05a9c99b0f565d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
-  backgroundMusic: {fileID: 8300000, guid: 0a286b0fc099f7d4bb682999fa3f2cf2, type: 3}
+  backgroundMusic: {fileID: 8300000, guid: c4e8a17b9d2f46e0b5a3c8d1f704e296, type: 3}
+  startMenuMusic: {fileID: 8300000, guid: 0a286b0fc099f7d4bb682999fa3f2cf2, type: 3}
   level2Music: {fileID: 8300000, guid: 41c1bb3283b99f247a2744579b2cbdbb, type: 3}
   level3Music: {fileID: 8300000, guid: 54ef6b46e0a2510499e5b107f5920de4, type: 3}
   buttonSound: {fileID: 8300000, guid: dbece0e01d0dee1488dd6dbd40ebb9f4, type: 3}

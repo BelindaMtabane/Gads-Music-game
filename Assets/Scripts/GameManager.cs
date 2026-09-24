@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 
 /// <summary>
-/// Manages the pre-game countdown (5-4-3-2-1-GO!) then enables gameplay.
+/// Manages the Opera House opening: curtain, narration, countdown, then GO.
 /// Also handles the Game Over and Victory sequences, scene transitions,
 /// and in-game narration hints.
 /// </summary>
@@ -48,7 +48,7 @@ public class GameManager : MonoBehaviour
     [Tooltip("Controller for the in-game narration popup (has the RESUME button).")]
     public InGameNarrationController inGameNarration;
 
-    [Tooltip("Lines shown as a popup right after GO! at the start of the run.")]
+    [Tooltip("Lines shown after the curtain reveal and before the countdown.")]
     public NarrationLine[] startNarration = new NarrationLine[]
     {
         new NarrationLine("Run! Collect the instruments before the guard catches you!"),
@@ -195,36 +195,57 @@ public class GameManager : MonoBehaviour
         yield return NarrationManager.WaitForSceneFade();
         NarrationManager.Instance?.Cancel();
 
-        // Play the level's opening cutscene (Opera curtains → L1, Museum doors → L2, Disco ball → L3)
+        // Curtain (or level cutscene) → narration → visible countdown → GO.
         var def = _levelDef ?? LevelCatalog.Get(ActiveLevel);
         if (def.gameplayCutscene != LevelCutsceneType.None)
             yield return LevelCutscenePlayer.PlayAndWait(def.gameplayCutscene);
 
-        // No countdown — gameplay begins immediately after cutscene
+        yield return PlayStartNarrationAndWait();
+        NarrationManager.Instance?.Cancel();
+
+        yield return PlayVisibleCountdown();
+
         GameStarted = true;
-        RunStats.MarkRunStart();   // start the run timer
+        RunStats.MarkRunStart();
         if (playerMovement != null) playerMovement.enabled = true;
         if (enemyBase      != null) enemyBase.enabled      = true;
 
         FindAnyObjectByType<RunLengthController>()?.PopulatePickupsForRun();
-
-        TriggerLevelStartDialogue();
     }
 
-    void TriggerLevelStartDialogue()
+    IEnumerator PlayVisibleCountdown()
     {
-        if (AIDialogueService.Instance == null) return;
-        var def = _levelDef ?? LevelCatalog.Get(ActiveLevel);
-        // Pass startHint1 as detail so the LLM prompt gets scene-specific context
-        // (drum traps / lasers / curtains) rather than the generic codename.
-        AIDialogueService.Instance.Speak(new DialogueContext
+        if (countdownOverlay != null)
         {
-            speakerName      = "Narrator",
-            levelName        = def.displayName,
-            eventType        = DialogueEvent.LevelStart,
-            detail           = def.startHint1,
-            artifactsRequired = def.artifactsToWin
-        });
+            countdownOverlay.SetActive(true);
+            countdownOverlay.transform.SetAsLastSibling();
+        }
+
+        if (countdownText != null)
+        {
+            TmpUiUtility.EnsureFont(countdownText);
+            countdownText.fontSize = 96f;
+            countdownText.fontStyle = FontStyles.Bold;
+            countdownText.alignment = TextAlignmentOptions.Center;
+            countdownText.color = new Color(0.83f, 0.69f, 0.22f, 1f);
+        }
+
+        AudioManager.Instance?.PlayCountdown();
+
+        int seconds = Mathf.Max(1, countdownSeconds);
+        for (int i = seconds; i >= 1; i--)
+        {
+            if (countdownText != null)
+                countdownText.text = i.ToString();
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        if (countdownText != null)
+            countdownText.text = "GO";
+        yield return new WaitForSecondsRealtime(0.7f);
+
+        if (countdownOverlay != null)
+            countdownOverlay.SetActive(false);
     }
 
     // ── In-game narration ─────────────────────────────────────────────────────

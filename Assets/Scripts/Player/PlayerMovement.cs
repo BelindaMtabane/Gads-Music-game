@@ -25,6 +25,17 @@ public class PlayerMovement : MonoBehaviour
 
     private bool canJump = true;
     public bool DidJumpThisFrame { get; private set; }
+    public bool IsDodging { get; private set; }
+
+    public float dodgeDuration = 0.6f;
+    public float dodgeCooldown = 0.85f;
+
+    float _dodgeUntil;
+    float _dodgeReadyAt;
+    float _standHeight;
+    Vector3 _standCenter;
+    Transform _visual;
+    Vector3 _visualScale;
 
     private void Start()
     {
@@ -38,6 +49,15 @@ public class PlayerMovement : MonoBehaviour
 
         GroundPlacementUtility.SnapTransformFeetToGround(
             transform, groundMask, footGroundOffset);
+
+        _standHeight = controller.height;
+        _standCenter = controller.center;
+        var animator = GetComponentInChildren<Animator>();
+        if (animator != null && animator.transform != transform)
+        {
+            _visual = animator.transform;
+            _visualScale = _visual.localScale;
+        }
     }
 
     /// <summary>
@@ -101,7 +121,13 @@ public class PlayerMovement : MonoBehaviour
         float horizontal = Input.GetAxis("Horizontal");
         Vector3 move = new Vector3(horizontal * sidewaySpeed, 0, forwardSpeed);
 
-        if (Input.GetButtonDown("Jump") && canJump && isGrounded)
+        if (Input.GetKeyDown(KeyCode.G))
+            TryDodge();
+
+        if (IsDodging && Time.time >= _dodgeUntil)
+            EndDodge();
+
+        if (Input.GetButtonDown("Jump") && canJump && isGrounded && !IsDodging)
         {
             velocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             canJump = false;
@@ -113,6 +139,50 @@ public class PlayerMovement : MonoBehaviour
         controller.Move(move * Time.deltaTime);
 
         RecoverFromFall();
+    }
+
+    public void TryDodge()
+    {
+        if (!enabled || !GameManager.GameStarted || IsDodging)
+            return;
+        if (controller == null || Time.time < _dodgeReadyAt)
+            return;
+
+        UpdateGrounded();
+        if (!isGrounded)
+            return;
+
+        IsDodging = true;
+        _dodgeUntil = Time.time + dodgeDuration;
+        _dodgeReadyAt = Time.time + dodgeCooldown;
+
+        // Keep the feet planted. The ducked top stays high enough to hit lasers,
+        // and low enough to pass under guitar strings.
+        float bottom = _standCenter.y - _standHeight * 0.5f;
+        const float duckedHeight = 1.28f;
+        controller.height = duckedHeight;
+        controller.center = new Vector3(_standCenter.x, bottom + duckedHeight * 0.5f, _standCenter.z);
+
+        if (_visual != null)
+            _visual.localScale = new Vector3(_visualScale.x, _visualScale.y * 0.62f, _visualScale.z);
+    }
+
+    void EndDodge()
+    {
+        IsDodging = false;
+        if (controller != null)
+        {
+            controller.height = _standHeight;
+            controller.center = _standCenter;
+        }
+        if (_visual != null)
+            _visual.localScale = _visualScale;
+    }
+
+    void OnDisable()
+    {
+        if (IsDodging)
+            EndDodge();
     }
 
     void OnControllerColliderHit(ControllerColliderHit hit)

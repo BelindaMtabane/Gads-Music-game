@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Shows the Rhythm Raiders splash for a fixed duration, then loads StartScene.
+/// Shows the Rhythm Raiders Horizon splash for a fixed duration, then loads StartScene.
 /// </summary>
 public class SplashScreenController : MonoBehaviour
 {

@@ -51,6 +51,8 @@ public class LevelBootstrap : MonoBehaviour
             enemy.ApplyLevelTuning(def.guardSpeed, def.guardBoostSpeed);
             if (enemy.GetComponent<GuardDialogueController>() == null)
                 enemy.gameObject.AddComponent<GuardDialogueController>();
+            if (def.levelNumber == 1)
+                EnsureGuardReadabilityLight(enemy.transform);
         }
 
         var runLength = FindAnyObjectByType<RunLengthController>();
@@ -61,7 +63,12 @@ public class LevelBootstrap : MonoBehaviour
         if (spawner == null)
             spawner = FindAnyObjectByType<Spawner>();
         if (spawner != null)
+        {
             spawner.spawnCount = def.spawnCount;
+            spawner.artifactSegmentInterval = Mathf.Max(1, def.artifactEverySegments);
+            if (def.levelNumber == 1)
+                TrumpetVisual.AttachTo(spawner.artifactTemplate);
+        }
 
         var gm = FindAnyObjectByType<GameManager>();
         if (gm != null)
@@ -70,6 +77,12 @@ public class LevelBootstrap : MonoBehaviour
         ScaleArtifacts(def.artifactScale);
         ConfigureLevelTheme(def);
         ApplyEnvironment(def);
+        BeatPulseVisual.BindLoadedObjects();
+        DrumRollToCurtain.BindLoaded();
+        if (def.levelNumber == 3)
+            ClubMicrophone.ReplaceLoadedDrums();
+        OpeningCurtain.BindAll();
+        PickupPresentation.Reveal();
     }
 
     static void ApplyEnvironment(LevelDefinition def)
@@ -116,8 +129,27 @@ public class LevelBootstrap : MonoBehaviour
         }
     }
 
+    static void EnsureGuardReadabilityLight(Transform guard)
+    {
+        if (guard.Find("GuardSpotlight") != null) return;
+
+        var lightGo = new GameObject("GuardSpotlight");
+        lightGo.transform.SetParent(guard, false);
+        lightGo.transform.localPosition = new Vector3(0f, 2.4f, -0.6f);
+        var light = lightGo.AddComponent<Light>();
+        light.type = LightType.Point;
+        light.range = 8f;
+        light.intensity = 1.7f;
+        light.color = new Color(0.72f, 0.12f, 0.16f);
+    }
+
     static void ScaleArtifacts(float scale)
     {
+        var spawner = GameObject.Find("spawnObjects")?.GetComponent<Spawner>()
+                      ?? Object.FindAnyObjectByType<Spawner>();
+        if (spawner != null && spawner.artifactTemplate != null)
+            spawner.artifactTemplate.transform.localScale = Vector3.one * scale;
+
         foreach (var tag in GameObject.FindGameObjectsWithTag("Artifact"))
         {
             if (tag == null) continue;

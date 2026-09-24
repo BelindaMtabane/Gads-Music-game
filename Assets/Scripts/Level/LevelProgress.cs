@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Cross-scene session state for Rhythm Raiders: Beat Horizon level flow.
+/// Cross-scene session state for Rhythm Raiders Horizon.
 /// </summary>
 public static class LevelProgress
 {

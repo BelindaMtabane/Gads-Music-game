@@ -2274,6 +2274,7 @@ MonoBehaviour:
   - {fileID: 1890331684}
   artifactTemplate: {fileID: 1944144892}
   artifactsPerSegment: 1
+  artifactSegmentInterval: 1
   curtainPrefab: {fileID: 87498834040236390, guid: 14af6b3d00b768644bacb2c214237ef4, type: 3}
   curtainSpawnChance: 0.7
 --- !u!4 &339932760
@@ -9290,6 +9291,7 @@ MonoBehaviour:
     artifactsToWin: 2
     artifactScale: 2
     spawnCurtains: 1
+    artifactEverySegments: 1
     hitCount: 10
     startHealth: 100
 --- !u!1 &1533650137
@@ -10422,7 +10424,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29191079bc5f46e42b05a9c99b0f565d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
-  backgroundMusic: {fileID: 8300000, guid: 0a286b0fc099f7d4bb682999fa3f2cf2, type: 3}
+  backgroundMusic: {fileID: 8300000, guid: c4e8a17b9d2f46e0b5a3c8d1f704e296, type: 3}
+  startMenuMusic: {fileID: 8300000, guid: 0a286b0fc099f7d4bb682999fa3f2cf2, type: 3}
   level2Music: {fileID: 8300000, guid: 41c1bb3283b99f247a2744579b2cbdbb, type: 3}
   level3Music: {fileID: 8300000, guid: 54ef6b46e0a2510499e5b107f5920de4, type: 3}
   buttonSound: {fileID: 8300000, guid: dbece0e01d0dee1488dd6dbd40ebb9f4, type: 3}

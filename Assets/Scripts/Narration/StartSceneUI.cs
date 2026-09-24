@@ -45,10 +45,10 @@ public class StartSceneUI : MonoBehaviour
     [TextArea(2, 5)]
     public string[] narrationLines = new string[]
     {
-        "Welcome to Rhythm Raiders: Beat Horizon!",
-        "You are Pulse — a rhythm thief infiltrating venues controlled by the Conductors.",
-        "Steal two musical artifacts per level. Outrun the guard. Restore the city's beat.",
-        "Level 1: The Opera House. Level 2: The Music Museum. Level 3: The Underground Club. Good luck!"
+        "Welcome to Rhythm Raiders Horizon.",
+        "You are Pulse, a rhythm thief. Run to the rhythm. Steal the beat.",
+        "The Opera House is playable. Collect two artifacts and escape the guard.",
+        "The Music Museum and Underground Club are planned levels, not part of this run."
     };
 
     public string speakerName = "";

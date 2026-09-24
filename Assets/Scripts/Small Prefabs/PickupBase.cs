@@ -31,7 +31,7 @@ public class PickupBase : MonoBehaviour
     private bool jumpBoostActive = false;
     private bool speedBoostActive = false;
 
-    // ── Public boost state for HUD ────────────────────────────────────────────
+    // â”€â”€ Public boost state for HUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private const float BoostDuration = 5f;
     public bool  IsSpeedBoostActive  => speedBoostActive;
     public bool  IsJumpBoostActive   => jumpBoostActive;
@@ -58,7 +58,6 @@ public class PickupBase : MonoBehaviour
                 playerMovement.jumpHeight = 3f;
                 jumpBoostTimer = 0f;
                 jumpBoostActive = false;
-                Debug.Log("Jump boost has worn off!");
             }
         }
         if (speedBoostActive)
@@ -70,17 +69,15 @@ public class PickupBase : MonoBehaviour
                 playerMovement.sidewaySpeed = playerMovement.baseSidewaySpeed;
                 speedBoostTimer = 0f;
                 speedBoostActive = false;
-                Debug.Log("Speed boost has worn off!");
             }
         }
         if (isSneaking)
         {
             sneakTimer += Time.deltaTime;
-            if (sneakTimer >= 5f)   // 5 s — timing the sneak now matters
+            if (sneakTimer >= 5f)   // 5 s â€” timing the sneak now matters
             {
                 isSneaking = false;
                 sneakTimer = 0f;
-                Debug.Log("Sneaking has worn off!");
             }
         }
 
@@ -104,10 +101,17 @@ public class PickupBase : MonoBehaviour
             && Time.time - lastHit < SolidHitCooldown)
             return;
 
+        var crowd = other.GetComponentInParent<DanceCrowd>();
+        if (crowd != null)
+        {
+            _solidHitTimes[rootId] = Time.time;
+            crowd.TryTakeArtifact(this);
+            return;
+        }
+
         if (HasTag(other, GameplayCollisionUtility.TagHealthDec))
         {
             _solidHitTimes[rootId] = Time.time;
-            Debug.Log("Player bumped a dangerous obstacle!");
             AudioManager.Instance?.PlayObstacleHitSfx();
             var obstacle = other.GetComponentInParent<HealthDecreaseObstacle>();
             if (obstacle != null)
@@ -136,14 +140,12 @@ public class PickupBase : MonoBehaviour
 
         if (HasTag(other, "HealthINC"))
         {
-            Debug.Log("Player hit a health pickup and is healed!");
             AudioManager.Instance?.PlayHealthPickupSfx();
             HealthIncrease();
             DestroyPickupRoot(other);
         }
         if (HasTag(other, "HealthDEC"))
         {
-            Debug.Log("Player hit a dangerous obstacle!");
             AudioManager.Instance?.PlayObstacleHitSfx();
             var obstacle = other.GetComponentInParent<HealthDecreaseObstacle>();
             if (obstacle != null)
@@ -158,27 +160,23 @@ public class PickupBase : MonoBehaviour
             if (other.GetComponentInParent<MusicInstrument>() != null)
                 return;
 
-            Debug.Log("Player hit an artifac and has increased the amount!");
             Artifact();
             DestroyPickupRoot(other);
         }
         if (HasTag(other, "JumpBoost"))
         {
-            Debug.Log("Player hit a jump boost and increased their jump height!");
             AudioManager.Instance?.PlayJumpPickupSfx();
             JumpBoost();
             DestroyPickupRoot(other);
         }
         if (HasTag(other, "Sneak"))
         {
-            Debug.Log("Player hit a sneak pickup and is now invisible to obstacles for 5 seconds!");
             AudioManager.Instance?.PlaySneakPickupSfx();
             Sneak();
             DestroyPickupRoot(other);
         }
         if (HasTag(other, "Speed"))
         {
-            Debug.Log("Player hit a speed boost and is now faster for 5 seconds!");
             AudioManager.Instance?.PlaySpeedPickupSfx();
             SpeedBoost();
             DestroyPickupRoot(other);
@@ -250,8 +248,7 @@ public class PickupBase : MonoBehaviour
         if (hitCounter > 0)
         {
             hitCounter = Mathf.Max(0, hitCounter - 1);
-            Debug.Log($"Shield absorbed hit — Shield remaining: {hitCounter}");
-            // Shield fully depleted this hit — spill leftover into Vibe
+            // Shield fully depleted this hit â€” spill leftover into Vibe
             if (hitCounter == 0)
             {
                 int spillover = amount - 1;   // 1 point consumed the last shield
@@ -264,7 +261,7 @@ public class PickupBase : MonoBehaviour
         }
         else
         {
-            // No shield left — Vibe takes full damage
+            // No shield left â€” Vibe takes full damage
             currentHealth = Mathf.Max(0, currentHealth - amount);
             if (currentHealth <= 0) KillPlayer(DeathCause.Obstacle);
         }
@@ -273,13 +270,13 @@ public class PickupBase : MonoBehaviour
     public void ResetForNewRun()
     {
         currentHealth      = maxHealth;   // maxHealth is already set by LevelBootstrap
-        // hitCounter intentionally NOT reset here — LevelBootstrap.Awake() owns that value
+        // hitCounter intentionally NOT reset here â€” LevelBootstrap.Awake() owns that value
         artifactAmount     = 0;
         artifactMoneyTotal = 0;
         _deathHandled      = false;
     }
 
-    /// <summary>Instant game over — defeat animation then DeathScene.</summary>
+    /// <summary>Instant game over â€” defeat animation then DeathScene.</summary>
     public void KillPlayer(DeathCause cause = DeathCause.Unknown)
     {
         if (_deathHandled) return;
@@ -302,9 +299,8 @@ public class PickupBase : MonoBehaviour
         artifactAmount += count;
         artifactMoneyTotal += money;
         AudioManager.Instance?.PlayArtifactPickupSfx();
-        Debug.Log($"Artifact collected! Total: {artifactAmount}, Value: ${artifactMoneyTotal}");
 
-        // First artifact collected → guard surges to add tension
+        // First artifact collected â†’ guard surges to add tension
         if (artifactAmount == 1)
         {
             var enemy = Object.FindAnyObjectByType<EnemyBase>();
@@ -314,6 +310,16 @@ public class PickupBase : MonoBehaviour
         TriggerArtifactDialogue();
 
         TryTriggerVictory();
+    }
+
+    public bool LoseArtifact()
+    {
+        if (artifactAmount <= 0)
+            return false;
+
+        artifactAmount--;
+        AudioManager.Instance?.PlayObstacleHitSfx();
+        return true;
     }
 
     void TriggerArtifactDialogue()
@@ -337,7 +343,6 @@ public class PickupBase : MonoBehaviour
         if (artifactAmount < ArtifactsToWin || currentHealth < 1)
             return false;
 
-        Debug.Log($"Player collected {artifactAmount} artifacts — victory!");
         Victory();
         return true;
     }
@@ -346,25 +351,21 @@ public class PickupBase : MonoBehaviour
         playerMovement.jumpHeight = 6f;
         jumpBoostTimer = 0f;
         jumpBoostActive = true;
-        Debug.Log("Jump boost activated.");
     }
     void SpeedBoost()
     {
-        playerMovement.forwardSpeed = playerMovement.baseForwardSpeed + 4f;   // +4 not +12 — still fast, not disorienting
+        playerMovement.forwardSpeed = playerMovement.baseForwardSpeed + 4f;   // +4 not +12 â€” still fast, not disorienting
         playerMovement.sidewaySpeed = playerMovement.baseSidewaySpeed + 1.5f;
         speedBoostTimer = 0f;
         speedBoostActive = true;
-        Debug.Log("Speed boost activated.");
     }
     void Sneak()
     {
         isSneaking = true;
         sneakTimer = 0f;
-        Debug.Log("Sneak activated.");
     }
     public void Victory()
     {
-        Debug.Log("Victory, player won!");
         // Use GameManager so the victory sequence (fade, etc.) runs cleanly
         if (GameManager.Instance != null)
             GameManager.Instance.TriggerVictory();
@@ -373,7 +374,6 @@ public class PickupBase : MonoBehaviour
     }
     public void Death()
     {
-        Debug.Log("Defeat, player lost!");
         RunStats.SaveFrom(this);
 
         if (GameManager.Instance != null)

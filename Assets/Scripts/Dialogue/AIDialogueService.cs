@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 /// <summary>
-/// LLM-backed dialogue for Rhythm Raiders (Beat Horizon).
+/// LLM-backed dialogue for Rhythm Raiders Horizon.
 /// Default: rich scripted lines (no install). Optional: Groq or any OpenAI-compatible API
 /// (same wire format as Ollama /v1/chat/completions) — lighter than running Ollama locally.
 /// </summary>
@@ -106,7 +106,7 @@ public class AIDialogueService : MonoBehaviour
 
     static string BuildSystemPrompt(DialogueContext ctx)
     {
-        return "You write ONE short in-game dialogue line (max 12 words) for Rhythm Raiders: Beat Horizon. " +
+        return "You write ONE short in-game dialogue line (max 12 words) for Rhythm Raiders Horizon. " +
                "Teen rhythm thief Pulse steals musical artifacts from guards. Tone: tense, musical, arcade. " +
                "No quotes. No emojis. Speaker: " + ctx.speakerName + ".";
     }

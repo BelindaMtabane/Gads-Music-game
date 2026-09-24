@@ -34,6 +34,8 @@ public class LevelDefinition
     public int   artifactsToWin  = 2;
     public float artifactScale   = 2.0f;
     public bool  spawnCurtains   = true;
+    /// <summary>Spawn a guaranteed artifact on every Nth ground segment. 1 = every segment.</summary>
+    public int   artifactEverySegments = 1;
 
     // ── Difficulty ────────────────────────────────────────────────────────────
     /// <summary>How many obstacle hits before death (shown on HUD as Shield).</summary>
@@ -59,16 +61,17 @@ public static class LevelCatalog
         introCutscene    = LevelCutsceneType.None,
         briefingLine1    = "The Conductors hid a legendary instrument behind the red curtains.",
         briefingLine2    = "Infiltrate the opera hall. Collect two artifacts and escape the guard.",
-        startHint1       = "Pulse, the artifact is on this stage. Move with the music!",
-        startHint2       = "Collect two instruments. The guard is already hunting you.",
-        forwardSpeed     = 8.0f,     // Comfortable pace — feels like running, not jogging
-        guardSpeed       = 6.5f,     // Behind player at baseline; surges create danger
-        guardBoostSpeed  = 12f,      // Surge: guard at 12, player at 8 = 4 m/s close rate (fair)
-        runLookAhead     = 120f,
-        spawnCount       = 6,        // Denser course — more variety, still learnable
+        startHint1       = "Pulse, run to the rhythm. Two gold artifacts are on this stage.",
+        startHint2       = "Gold piano keys are safe to run. Jump the red keys — a wrong note slows you for 10 seconds.",
+        forwardSpeed     = 8.0f,
+        guardSpeed       = 6.5f,
+        guardBoostSpeed  = 12f,
+        runLookAhead     = 140f,
+        spawnCount       = 5,
         artifactsToWin   = 2,
-        artifactScale    = 1.0f,     // Natural size — visible without being overwhelming
+        artifactScale    = 1.45f,
         spawnCurtains    = true,
+        artifactEverySegments = 2,
         hitCount         = 10,       // Generous — easy mode
         startHealth      = 100,
     };
@@ -86,10 +89,10 @@ public static class LevelCatalog
         briefingTitle    = "Music Museum — Level 2",
         gameplayCutscene = LevelCutsceneType.MuseumSecurityDoor,
         introCutscene    = LevelCutsceneType.None,
-        briefingLine1    = "Ancient instruments locked behind motion sensors and rolling drum traps.",
+        briefingLine1    = "Lasers, piano keys, and guitar strings fill the museum hall.",
         briefingLine2    = "The guards patrol tighter here. Two artifacts — extract before lockdown.",
-        startHint1       = "Museum security is heavier. Sneak pickups when you can.",
-        startHint2       = "Rolling drums and alarms ahead — jump clean and keep your rhythm.",
+        startHint1       = "Jump the red lasers. Press G to dodge under the guitar strings.",
+        startHint2       = "Gold piano keys are safe to run. Jump the red keys — a wrong note slows you.",
         forwardSpeed     = 10.0f,    // Noticeably faster than L1
         guardSpeed       = 8.5f,
         guardBoostSpeed  = 16f,      // Surge: guard at 16, player at 10 = 6 m/s close rate
@@ -116,9 +119,9 @@ public static class LevelCatalog
         gameplayCutscene = LevelCutsceneType.ClubDiscoBall,
         introCutscene    = LevelCutsceneType.None,
         briefingLine1    = "The artifact is hidden beneath the main DJ stage.",
-        briefingLine2    = "Guards move with the beat drops. Lasers and sound traps everywhere.",
-        startHint1       = "Final run — neon lights, maximum pressure. Stay on beat!",
-        startHint2       = "Collect two artifacts and escape before the club locks down.",
+        briefingLine2    = "Rolling mics, trumpet note beams, and a dancing crowd fill the floor.",
+        startHint1       = "Press G to dodge the trumpet beams. A hit slows you down.",
+        startHint2       = "Dancers block a lane. Running into them can cost an artifact.",
         forwardSpeed     = 13.0f,    // Fastest — hard to control by design
         guardSpeed       = 11.5f,
         guardBoostSpeed  = 22f,      // Surge: guard at 22, player at 13 = 9 m/s close rate (hard)

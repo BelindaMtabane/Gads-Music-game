@@ -10,7 +10,8 @@ using UnityEngine.UI;
 public class SetupAudio
 {
     // Audio clip paths
-    private const string BACKGROUND = "Assets/Audios/background_sound.mp3";
+    private const string BACKGROUND = "Assets/Audios/Morning_on_the_Plateau.mp3";
+    private const string MENU_MUSIC = "Assets/Audios/background_sound.mp3";
     private const string LEVEL2_MUSIC = "Assets/Audios/level2museumSound.mp3";
     private const string LEVEL3_MUSIC = "Assets/Audios/level3GameSound.mp3";
     private const string BUTTON     = "Assets/Audios/button_sound.mp3";
@@ -79,7 +80,8 @@ public class SetupAudio
         }
 
         existing.backgroundMusic = bgClip;
-        existing.backgroundMusicLayer = bgClip;
+        existing.startMenuMusic = AssetDatabase.LoadAssetAtPath<AudioClip>(MENU_MUSIC);
+        existing.backgroundMusicLayer = existing.startMenuMusic;
         existing.level2Music = level2Clip;
         existing.level3Music = level3Clip;
         existing.buttonSound     = btnClip;

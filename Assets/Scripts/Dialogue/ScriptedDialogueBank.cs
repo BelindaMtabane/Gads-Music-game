@@ -63,7 +63,7 @@ public static class ScriptedDialogueBank
         [DialogueEvent.Victory] = new[]
         {
             "Artifact extracted successfully.",
-            "Beat Horizon lives on!",
+            "Rhythm Raiders Horizon lives on!",
             "We beat the Conductors tonight.",
         },
         [DialogueEvent.Defeat] = new[]

@@ -21,7 +21,9 @@ public class AudioManager : MonoBehaviour
 
     // ── Clips (assign in Inspector or via Setup Audio editor tool) ────────────
     [Header("Audio Clips")]
-    public AudioClip backgroundMusic;   // L1 — background_sound.mp3
+    public AudioClip backgroundMusic;   // L1 — Morning_on_the_Plateau.mp3
+    [Tooltip("Original Opera House track, used as the start-menu music.")]
+    public AudioClip startMenuMusic;
     public AudioClip level2Music;       // L2 — level2museumSound.mp3
     public AudioClip level3Music;       // L3 — level3GameSound.mp3
     public AudioClip buttonSound;       // button_sound.mp3
@@ -102,8 +104,19 @@ public class AudioManager : MonoBehaviour
         _countdownSource.spatialBlend = 0f;
         _countdownSource.priority     = 64;
 
+        if (GetComponent<MusicBeatClock>() == null)
+            gameObject.AddComponent<MusicBeatClock>();
+
         // Auto-play music based on starting scene
         AutoPlayForScene(SceneManager.GetActiveScene().name);
+    }
+
+    public AudioSource MusicSource => _musicSource;
+
+    internal void RepairSingleton()
+    {
+        if (Instance == null)
+            Instance = this;
     }
 
     private void OnEnable()
@@ -132,11 +145,11 @@ public class AudioManager : MonoBehaviour
         switch (sceneName)
         {
             case "StartScene":
-                // Narrative audio plays when narration starts (StartSceneUI calls PlayNarrative)
+                PlayBackground(startMenuMusic != null ? startMenuMusic : backgroundMusic, useMusicLayer: false);
                 break;
 
             case "MainGameL1Opera":
-                PlayBackground(GetClipForScene(sceneName), useMusicLayer: true);
+                PlayBackground(GetClipForScene(sceneName), useMusicLayer: false);
                 break;
 
             case "Level2Museum":

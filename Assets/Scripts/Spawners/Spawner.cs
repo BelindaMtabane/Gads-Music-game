@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -24,6 +25,10 @@ public class Spawner : MonoBehaviour
     [Header("Artifacts")]
     public GameObject artifactTemplate;
     public int artifactsPerSegment = 1;
+    [Tooltip("Place a guaranteed artifact on every Nth ground segment.")]
+    public int artifactSegmentInterval = 1;
+
+    int _segmentsConsideredForArtifacts;
 
     [Header("Curtain (side spawn only)")]
     public GameObject curtainPrefab;
@@ -44,14 +49,28 @@ public class Spawner : MonoBehaviour
         GetSpawnRange(ground, footprint, out float minX, out float maxX, out float minZ, out float maxZ);
         float rayStartY = footprint.max.y + 5f;
 
+        var placed = new List<Vector3>(spawnCount);
         for (int i = 0; i < spawnCount; i++)
         {
             GameObject spawnPickup = PickRandomNonArtifact();
             if (spawnPickup == null) continue;
 
-            float spawnX = Random.Range(minX, maxX);
-            float spawnZ = Random.Range(minZ, maxZ);
-            Vector3 position = SnapToGroundSurface(spawnX, spawnZ, ground, rayStartY);
+            Vector3 position = Vector3.zero;
+            bool placedClear = false;
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                float spawnX = Random.Range(minX, maxX);
+                float spawnZ = Random.Range(minZ, maxZ);
+                position = SnapToGroundSurface(spawnX, spawnZ, ground, rayStartY);
+                if (!IsCrowded(position, placed, 7f))
+                {
+                    placedClear = true;
+                    break;
+                }
+            }
+
+            if (!placedClear) continue;
+            placed.Add(position);
             SpawnOnGround(spawnPickup, position, ground);
         }
 
@@ -81,6 +100,12 @@ public class Spawner : MonoBehaviour
             col.enabled = true;
 
         GameplayCollisionUtility.ConfigureObject(clone);
+        BeatPulseVisual.Attach(clone);
+        DrumRollToCurtain.Attach(clone);
+        if (LevelProgress.CurrentLevel == 3)
+            ClubMicrophone.Replace(clone);
+        OpeningCurtain.Ensure(clone);
+        PickupPresentation.RevealObject(clone);
     }
 
     static void GetSpawnRange(GameObject ground, Bounds footprint, out float minX, out float maxX, out float minZ, out float maxZ)
@@ -179,14 +204,47 @@ public class Spawner : MonoBehaviour
         if (artifactTemplate == null || artifactsPerSegment < 1)
             return;
 
+        _segmentsConsideredForArtifacts++;
+        int interval = Mathf.Max(1, artifactSegmentInterval);
+        if ((_segmentsConsideredForArtifacts % interval) != 0)
+            return;
+
         for (int i = 0; i < artifactsPerSegment; i++)
         {
             float x = Random.Range(minX, maxX);
             float z = Random.Range(minZ, maxZ);
             Vector3 position = SnapToGroundSurface(x, z, ground, rayStartY);
-            position.y += 0.2f;
-            SpawnOnGround(artifactTemplate, position, ground);
+            position.y += 0.35f;
+            AddArtifactGlow(SpawnOnGround(artifactTemplate, position, ground));
         }
+    }
+
+    static bool IsCrowded(Vector3 candidate, List<Vector3> placed, float minDistance)
+    {
+        float minSqr = minDistance * minDistance;
+        for (int i = 0; i < placed.Count; i++)
+        {
+            Vector3 delta = placed[i] - candidate;
+            delta.y = 0f;
+            if (delta.sqrMagnitude < minSqr)
+                return true;
+        }
+        return false;
+    }
+
+    static void AddArtifactGlow(GameObject artifact)
+    {
+        if (artifact == null || artifact.transform.Find("ArtifactGlow") != null)
+            return;
+
+        var lightGo = new GameObject("ArtifactGlow");
+        lightGo.transform.SetParent(artifact.transform, false);
+        lightGo.transform.localPosition = Vector3.up * 0.8f;
+        var light = lightGo.AddComponent<Light>();
+        light.type = LightType.Point;
+        light.color = new Color(0.831f, 0.686f, 0.216f);
+        light.range = 5f;
+        light.intensity = 1.5f;
     }
 
     private void TrySpawnSideCurtain(GameObject ground, Bounds footprint)

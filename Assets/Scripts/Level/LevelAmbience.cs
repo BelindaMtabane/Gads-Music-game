@@ -39,9 +39,16 @@ public class LevelAmbience : MonoBehaviour
         if (_directional != null)
         {
             _directional.color = new Color(1f, 0.92f, 0.82f);
-            _directional.intensity = 1.15f;
+            _directional.intensity = 1.05f;
         }
-        RenderSettings.ambientLight = new Color(0.28f, 0.22f, 0.24f);
+
+        RenderSettings.ambientMode = AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.22f, 0.14f, 0.16f);
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.Linear;
+        RenderSettings.fogColor = new Color(0.10f, 0.045f, 0.05f);
+        RenderSettings.fogStartDistance = 55f;
+        RenderSettings.fogEndDistance = 175f;
     }
 
     void ApplyMuseum()

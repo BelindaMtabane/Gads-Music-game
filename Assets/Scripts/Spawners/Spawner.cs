@@ -39,6 +39,7 @@ public class Spawner : MonoBehaviour
     private const float CurtainSideMaxX = 10f;
     private const float CurtainSpawnY = 3f;
     private const float SpawnSurfaceLift = 0.12f;
+    public const float CurtainPickupGap = 16f;
     private const int GroundLayerMask = 1 << 6;
 
     public void SpawnGameObjects(GameObject ground)
@@ -62,7 +63,7 @@ public class Spawner : MonoBehaviour
                 float spawnX = Random.Range(minX, maxX);
                 float spawnZ = Random.Range(minZ, maxZ);
                 position = SnapToGroundSurface(spawnX, spawnZ, ground, rayStartY);
-                if (!IsCrowded(position, placed, 7f))
+                if (!IsCrowded(position, placed, 7f) && !BlocksCurtainView(position))
                 {
                     placedClear = true;
                     break;
@@ -74,8 +75,8 @@ public class Spawner : MonoBehaviour
             SpawnOnGround(spawnPickup, position, ground);
         }
 
-        SpawnArtifacts(ground, footprint, minX, maxX, minZ, maxZ, rayStartY);
         TrySpawnSideCurtain(ground, footprint);
+        SpawnArtifacts(ground, footprint, minX, maxX, minZ, maxZ, rayStartY);
     }
 
     static GameObject SpawnOnGround(GameObject template, Vector3 worldPosition, GameObject groundSegment)
@@ -214,6 +215,11 @@ public class Spawner : MonoBehaviour
             float x = Random.Range(minX, maxX);
             float z = Random.Range(minZ, maxZ);
             Vector3 position = SnapToGroundSurface(x, z, ground, rayStartY);
+            for (int attempt = 0; attempt < 8 && BlocksCurtainView(position); attempt++)
+            {
+                z = Random.Range(minZ, maxZ);
+                position = SnapToGroundSurface(Random.Range(minX, maxX), z, ground, rayStartY);
+            }
             position.y += 0.35f;
             AddArtifactGlow(SpawnOnGround(artifactTemplate, position, ground));
         }
@@ -263,6 +269,7 @@ public class Spawner : MonoBehaviour
         curtain.transform.localScale = curtainPrefab.transform.localScale;
         PrepareSpawnedClone(curtain);
         GroundSegmentContent.Bind(curtain, ground);
+        ClearPickupsAheadOf(curtain.transform.position);
     }
 
     public GameObject SpawnSideCurtainAt(float worldZ)
@@ -275,7 +282,57 @@ public class Spawner : MonoBehaviour
         GameObject curtain = Instantiate(curtainPrefab, new Vector3(x, CurtainSpawnY, worldZ), curtainPrefab.transform.rotation);
         curtain.transform.localScale = curtainPrefab.transform.localScale;
         PrepareSpawnedClone(curtain);
+        ClearPickupsAheadOf(curtain.transform.position);
         Destroy(curtain, 65f);
         return curtain;
+    }
+
+    static bool BlocksCurtainView(Vector3 position)
+    {
+        var curtains = Object.FindObjectsByType<CurtainObstacle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        for (int i = 0; i < curtains.Length; i++)
+        {
+            if (curtains[i] == null) continue;
+            float ahead = position.z - curtains[i].transform.position.z;
+            if (ahead > -2.5f && ahead < CurtainPickupGap)
+                return true;
+        }
+        return false;
+    }
+
+    public static void ClearPickupsAheadOf(Vector3 curtainPos)
+    {
+        var roots = Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        int shifted = 0;
+        for (int i = 0; i < roots.Length; i++)
+        {
+            var t = roots[i];
+            if (t == null || t.parent != null) continue;
+            if (!IsCollectible(t)) continue;
+
+            float ahead = t.position.z - curtainPos.z;
+            if (ahead <= -2.5f || ahead >= CurtainPickupGap) continue;
+
+            var p = t.position;
+            p.z = curtainPos.z + CurtainPickupGap + shifted * 5f;
+            t.position = p;
+            shifted++;
+        }
+    }
+
+    static bool IsCollectible(Transform t)
+    {
+        try
+        {
+            return t.CompareTag("Speed")
+                || t.CompareTag("Sneak")
+                || t.CompareTag("HealthINC")
+                || t.CompareTag("JumpBoost")
+                || t.CompareTag("Artifact");
+        }
+        catch (UnityException)
+        {
+            return false;
+        }
     }
 }

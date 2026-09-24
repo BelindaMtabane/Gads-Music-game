@@ -49,5 +49,11 @@ public class OpeningCurtainDoor : MonoBehaviour
             if (wallRenderer != null)
                 wallRenderer.enabled = false;
         }
+
+        if (_t >= 1f)
+        {
+            if (left != null) Destroy(left.gameObject);
+            if (right != null) Destroy(right.gameObject);
+        }
     }
 }

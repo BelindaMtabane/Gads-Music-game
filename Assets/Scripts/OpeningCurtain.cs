@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class OpeningCurtain : MonoBehaviour
 {
-    public float openAheadDistance = 36f;
+    public float openAheadDistance = 10f;
     public float openSeconds = 0.85f;
 
     Transform _left;
@@ -98,8 +98,15 @@ public class OpeningCurtain : MonoBehaviour
 
     void Update()
     {
-        if (_left == null || _right == null || (_opening && _t >= 1f))
+        if (_left == null || _right == null)
             return;
+
+        if (_opening && _t >= 1f)
+        {
+            if (PlayerIsPast())
+                Destroy(gameObject);
+            return;
+        }
 
         if (!_opening && GameManager.GameStarted && PlayerIsClose())
             _opening = true;
@@ -121,6 +128,15 @@ public class OpeningCurtain : MonoBehaviour
 
         float ahead = transform.position.z - player.transform.position.z;
         return ahead < openAheadDistance && ahead > -4f;
+    }
+
+    bool PlayerIsPast()
+    {
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+            return true;
+
+        return player.transform.position.z > transform.position.z + 1.5f;
     }
 
     public static void Ensure(GameObject curtain)

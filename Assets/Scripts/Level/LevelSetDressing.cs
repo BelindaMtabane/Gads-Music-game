@@ -296,7 +296,7 @@ public class LevelSetDressing : MonoBehaviour
             beam.transform.position = new Vector3(0f, beamY, z);
             beam.transform.localScale = new Vector3(24f, 0.2f, 0.42f);
             ApplyMat(beam, beamMat);
-            beam.AddComponent<TrackContact>().speedGuard = true;
+            beam.AddComponent<TrackContact>(); // lasers don't speed the guard
             var beamCol = beam.GetComponent<Collider>();
             if (beamCol != null)
                 beamCol.isTrigger = true;

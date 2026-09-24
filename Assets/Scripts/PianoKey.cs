@@ -42,26 +42,42 @@ public class PianoKey : MonoBehaviour
 }
 
 /// <summary>
-/// One slow at a time. Another wrong note restarts the 10 seconds without stacking the speed cut.
+/// One slow at a time, for 5 seconds. A speed pickup cancels it so only the boost remains.
 /// </summary>
 public class PianoMissSlow : MonoBehaviour
 {
     const float SlowAmount = 4f;
-    const float Duration = 10f;
+    const float Duration = 5f;
 
     PlayerMovement _movement;
     Coroutine _routine;
     bool _applied;
+
+    public bool IsActive => _applied;
 
     public static void Apply(PlayerMovement movement)
     {
         if (movement == null)
             return;
 
+        // Don't cut speed out from under a boost that is already running.
+        var pickup = movement.GetComponent<PickupBase>();
+        if (pickup != null && pickup.IsSpeedBoostActive)
+            return;
+
         var slow = movement.GetComponent<PianoMissSlow>();
         if (slow == null)
             slow = movement.gameObject.AddComponent<PianoMissSlow>();
         slow.Begin(movement);
+    }
+
+    // Don't add the lost speed back. SpeedBoost writes the new speed itself.
+    public void Cancel()
+    {
+        if (_routine != null)
+            StopCoroutine(_routine);
+        _routine = null;
+        _applied = false;
     }
 
     void Begin(PlayerMovement movement)
@@ -72,6 +88,7 @@ public class PianoMissSlow : MonoBehaviour
             movement.forwardSpeed = Mathf.Max(1f, movement.forwardSpeed - SlowAmount);
             _applied = true;
             AudioManager.Instance?.PlaySlowDownObstacleSfx();
+            Object.FindAnyObjectByType<EnemyBase>()?.AddPianoPressure();
         }
 
         if (_routine != null)
@@ -83,16 +100,14 @@ public class PianoMissSlow : MonoBehaviour
     {
         yield return new WaitForSeconds(Duration);
         if (_applied && _movement != null)
-        {
-            _movement.forwardSpeed += SlowAmount;
-            _applied = false;
-        }
+            _movement.forwardSpeed = _movement.baseForwardSpeed;
+        _applied = false;
         _routine = null;
     }
 }
 
 /// <summary>
-/// Guitar strings slow the runner. A laser speeds the guard. Neither follows the player's slow.
+/// Guitar strings slow the runner. Lasers are only a touch hit.
 /// </summary>
 public class TrackContact : MonoBehaviour
 {

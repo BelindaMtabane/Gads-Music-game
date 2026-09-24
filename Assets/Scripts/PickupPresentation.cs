@@ -16,6 +16,7 @@ public static class PickupPresentation
         RevealTag("HealthINC");
         RevealTag("JumpBoost");
         RevealTag("Artifact");
+        RevealTag("SlowDown");
     }
 
     public static void RevealObject(GameObject pickup)
@@ -64,18 +65,23 @@ public static class PickupPresentation
             hasModel = true;
         }
 
-        if (!hasModel)
-            return;
+        if (hasModel)
+        {
+            var cube = pickup.GetComponent<MeshRenderer>();
+            if (cube != null)
+                cube.enabled = false;
 
-        var cube = pickup.GetComponent<MeshRenderer>();
-        if (cube != null)
-            cube.enabled = false;
+            FitModels(pickup);
+            if (LevelProgress.CurrentLevel == 3)
+                LightDarkPickup(pickup);
+            if (!HasThemedArtifact(pickup.transform))
+                ShrinkTrigger(pickup);
+        }
 
-        FitModels(pickup);
-        if (LevelProgress.CurrentLevel == 3)
-            LightDarkPickup(pickup);
-        if (!HasThemedArtifact(pickup.transform))
-            ShrinkTrigger(pickup);
+        // Bounds are wrong the frame a mesh appears, so PickupFloorSeat retries.
+        SeatOnFloor(pickup);
+        if (pickup.GetComponent<PickupFloorSeat>() == null)
+            pickup.AddComponent<PickupFloorSeat>();
 
         var marker = new GameObject("PickupSized");
         marker.transform.SetParent(pickup.transform, false);
@@ -98,30 +104,49 @@ public static class PickupPresentation
 
             float size = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
             if (size > 0.05f && Mathf.Abs(size - TargetSize) > 0.08f)
-            {
                 child.localScale *= TargetSize / size;
-                if (!TryGetBounds(child, out bounds))
-                    continue;
-            }
-
-            float floorY = FloorHeight(pickup.transform.position);
-            float lift = (floorY + FloorClearance) - bounds.min.y;
-            child.position += Vector3.up * lift;
         }
     }
 
-    static float FloorHeight(Vector3 position)
+    // Move the whole pickup so the lowest visible point rests on the ground, not through it.
+    public static void SeatOnFloor(GameObject pickup)
     {
-        Vector3 origin = new Vector3(position.x, position.y + 8f, position.z);
-        var hits = Physics.RaycastAll(origin, Vector3.down, 24f, GroundLayerMask, QueryTriggerInteraction.Ignore);
-        float highest = float.NegativeInfinity;
-        for (int i = 0; i < hits.Length; i++)
+        if (pickup == null)
+            return;
+
+        Physics.SyncTransforms();
+        float lowest = float.PositiveInfinity;
+        var renderers = pickup.GetComponentsInChildren<Renderer>();
+        for (int i = 0; i < renderers.Length; i++)
         {
-            if (hits[i].point.y > highest)
-                highest = hits[i].point.y;
+            if (renderers[i] == null || !renderers[i].enabled || IsDecoration(renderers[i].transform))
+                continue;
+            lowest = Mathf.Min(lowest, renderers[i].bounds.min.y);
         }
 
-        return highest > float.NegativeInfinity ? highest : position.y;
+        if (lowest == float.PositiveInfinity)
+            return;
+
+        float lift = (FloorHeight(pickup.transform.position, pickup) + FloorClearance) - lowest;
+        if (Mathf.Abs(lift) > 0.001f)
+            pickup.transform.position += Vector3.up * lift;
+    }
+
+    static float FloorHeight(Vector3 position, GameObject ignore)
+    {
+        var hits = Physics.RaycastAll(position + Vector3.up * 12f, Vector3.down, 30f, GroundLayerMask, QueryTriggerInteraction.Ignore);
+        float best = float.NegativeInfinity;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (hits[i].collider == null || hits[i].point.y > position.y + 2f)
+                continue;
+            if (ignore != null && hits[i].collider.transform.IsChildOf(ignore.transform))
+                continue;
+            if (hits[i].point.y > best)
+                best = hits[i].point.y;
+        }
+
+        return best > float.NegativeInfinity ? best : position.y;
     }
 
     static void LightDarkPickup(GameObject pickup)
@@ -244,7 +269,8 @@ public static class PickupPresentation
             || SafeTag(pickup.transform, "Sneak")
             || SafeTag(pickup.transform, "HealthINC")
             || SafeTag(pickup.transform, "JumpBoost")
-            || SafeTag(pickup.transform, "Artifact");
+            || SafeTag(pickup.transform, "Artifact")
+            || SafeTag(pickup.transform, "SlowDown");
     }
 
     static bool SafeTag(Transform t, string tag)
@@ -257,5 +283,18 @@ public static class PickupPresentation
         {
             return false;
         }
+    }
+}
+
+// Imported meshes settle their bounds a few frames after spawn.
+public class PickupFloorSeat : MonoBehaviour
+{
+    int _frames;
+
+    void LateUpdate()
+    {
+        PickupPresentation.SeatOnFloor(gameObject);
+        if (++_frames >= 8)
+            Destroy(this);
     }
 }

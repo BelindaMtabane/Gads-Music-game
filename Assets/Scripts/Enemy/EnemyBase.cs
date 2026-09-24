@@ -147,9 +147,13 @@ public class EnemyBase : MonoBehaviour
     float _pianoBonus;
     bool _chaseStarted;
 
+    // Wrong tiles and slows nudge the guard. The cap keeps that nudge small.
+    const float PressureStep = 1f;
+    const float PressureCap = 1.5f;
+
     public void AddPianoPressure()
     {
-        _pianoBonus += 2f;
+        _pianoBonus = Mathf.Min(PressureCap, _pianoBonus + PressureStep);
         if (!_surging)
             speed = baseSpeed + _pianoBonus;
     }
@@ -159,7 +163,7 @@ public class EnemyBase : MonoBehaviour
         if (ChaseHasStarted())
             return;
 
-        _pianoBonus = Mathf.Max(0f, _pianoBonus - 2f);
+        _pianoBonus = Mathf.Max(0f, _pianoBonus - PressureStep);
         if (!_surging)
             speed = baseSpeed + _pianoBonus;
     }

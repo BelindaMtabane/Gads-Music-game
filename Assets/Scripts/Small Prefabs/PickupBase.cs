@@ -90,7 +90,10 @@ public class PickupBase : MonoBehaviour
             speedBoostTimer += Time.deltaTime;
             if (speedBoostTimer >= 5f)
             {
-                playerMovement.forwardSpeed = playerMovement.baseForwardSpeed;
+                // A slow that started after the boost keeps its own speed.
+                var slow = playerMovement.GetComponent<PianoMissSlow>();
+                if (slow == null || !slow.IsActive)
+                    playerMovement.forwardSpeed = playerMovement.baseForwardSpeed;
                 playerMovement.sidewaySpeed = playerMovement.baseSidewaySpeed;
                 speedBoostTimer = 0f;
                 speedBoostActive = false;
@@ -362,13 +365,6 @@ public class PickupBase : MonoBehaviour
         GrantCorrectPickup(money);
         AudioManager.Instance?.PlayArtifactPickupSfx();
 
-        // First artifact collected â†’ guard surges to add tension
-        if (artifactAmount == 1)
-        {
-            var enemy = Object.FindAnyObjectByType<EnemyBase>();
-            enemy?.Surge(5f);
-        }
-
         TriggerArtifactDialogue();
 
         TryTriggerVictory();
@@ -450,7 +446,9 @@ public class PickupBase : MonoBehaviour
     }
     void SpeedBoost()
     {
-        playerMovement.forwardSpeed = playerMovement.baseForwardSpeed + 4f;   // +4 not +12 â€” still fast, not disorienting
+        // Fast wins. Cancel so the slow timer doesn't write over this speed.
+        playerMovement.GetComponent<PianoMissSlow>()?.Cancel();
+        playerMovement.forwardSpeed = playerMovement.baseForwardSpeed + 4f;
         playerMovement.sidewaySpeed = playerMovement.baseSidewaySpeed + 1.5f;
         speedBoostTimer = 0f;
         speedBoostActive = true;
